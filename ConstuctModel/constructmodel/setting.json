@@ -1,0 +1,37 @@
+{
+    "box":{
+        "zlo":-60.0,
+        "zhi":60.0
+        },
+    "cell":{
+        "num_cell_x":4,
+        "num_cell_y":4,
+        "num_cell_z":1,
+        "gap_of_cells":1,
+        "length_x":20.0,
+        "length_y":20.0,
+        "length_z":70.0
+        },
+    "particle":{
+        "type":"random",
+        "particle_zlo":37.0,
+        "particle_zhi":57.0,
+        "particle_rho":10.0,
+        "target_average_speed": 0.0003125,
+        "target_average_direction": [1.0, 0.0, 0.0],
+        "seed": 42
+        },
+    "wall":{
+        "dist_from_box_edge":1.0,
+        "wall_rho":1.0
+        },
+    "particle_single":{
+        "x":[0.0,0.0,0.0],
+        "y":[0.0,0.0,0.0],
+        "z":[39.0,39.4,39.8]
+    },
+    "fixed_particle_space":{
+        "cell_tom":[38,5244,10450,15656,20862,26068,31274,36480,41686,46892,52098,57304,62510,67716,72922,78128],
+        "cell_bottom":[5176,10382,15588,20794,26000,31206,36412,41618,46824,52030,57236,62442,67648,72854,78060,83266]
+    }
+}

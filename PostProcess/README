@@ -1,0 +1,59 @@
+# Mean Squared Displacement (MSD) Calculator
+
+This script calculates the Mean Squared Displacement (MSD) and diffusion coefficient for a specific atom type from a LAMMPS trajectory file. It can also plot the MSD and diffusion coefficient.
+
+## Prerequisites
+
+To use this script, you need to have Python 3 installed along with the following libraries:
+
+- numpy
+- matplotlib
+- tqdm
+- concurrent.futures
+
+You can install the required libraries using the following command:
+
+pip install numpy matplotlib tqdm
+
+shell
+Copy code
+
+## Usage
+
+python msd_calculator.py <traj_file> <target_atom_type> <min_timestep> <max_timestep> <num_processes>
+
+markdown
+Copy code
+
+- `<traj_file>`: Path to the LAMMPS trajectory file
+- `<target_atom_type>`: Target atom type for MSD calculation (integer)
+- `<min_timestep>`: Minimum timestep to consider (integer)
+- `<max_timestep>`: Maximum timestep to consider (integer)
+- `<num_processes>`: Number of processes to use for parallel calculation (integer)
+
+For example:
+
+python msd_calculator.py run.lammpstrj 2 0 1000 4
+
+bash
+Copy code
+
+This command calculates the MSD and diffusion coefficient for atom type 2 from the `run.lammpstrj` file, considering timesteps 0 to 1000, using 4 processes.
+
+## Output
+
+The script will output the calculated diffusion coefficient in the console:
+
+Diffusion Coefficient: 0.16666666666666688
+
+vbnet
+Copy code
+
+It will also generate two plot files:
+
+- `msd_plot.png`: A scatter plot of Mean Squared Displacement vs. Time Delta
+- `diffusion_coefficient_plot.png`: A bar plot of the diffusion coefficient
+
+## Notes
+
+This script is designed to handle large LAMMPS trajectory files efficiently by using parallel processing and memory optimization techniques. However, the performance may vary depending on the available system resources. Adjust the number of processes accordingly to optimize the performance on your system.
