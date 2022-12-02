@@ -1,5 +1,5 @@
 # ConstructModel
-creat cell model which is used by mesocale viscoelastic membrane model
+Creat cell model which is used by mesocale viscoelastic membrane model
 
 This repo is used for personal purpose to construct cell membrane model used by meso version LAMMPS https://github.com/yhtang/USERMESO-2.0-mdpd
 Mesoscale viscoelatic membrane model coupled with Dissipative Particle Dynamics method.
