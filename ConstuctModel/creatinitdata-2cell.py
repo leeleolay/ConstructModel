@@ -33,10 +33,10 @@ particle_xlo = -25
 particle_xhi = 25
 particle_ylo = -12.5
 particle_yhi = 12.5
-particle_zlo = 25
-particle_zhi = 148
+particle_zlo = 100
+particle_zhi = 138
 disDropAtom = 1.5
-
+numberofparticle = np.arange(particle_xlo,particle_xhi,disDropAtom).size * np.arange(particle_ylo,particle_yhi,disDropAtom) .size * np.arange(particle_zlo,particle_zhi,disDropAtom).size
 distBetweenCellAndBall = -50
 distOfCell = 5 + 20.0
 distOfball = 15.0
@@ -178,8 +178,8 @@ with open(outputfilename, "w") as f:
     f.write(
         f'''LAMMPS data file
 
-{str(len(cAtomID)*numOfCell+len(bAtomID)*numOfBall+numparticlefromwall*2)} atoms
-2 atom types 
+{str(len(cAtomID)*numOfCell+len(bAtomID)*numOfBall+numparticlefromwall*2+numberofparticle)} atoms
+3 atom types 
 {str(len(cBondID)*numOfCell+len(bBondID)*numOfBall)} bonds
 2 bond types
 {str(len(cAngleID)*numOfCell+len(bAngleID)*numOfBall)} angles
@@ -195,6 +195,7 @@ Masses
 
 1 1
 2 1
+3 1
 
 Atoms
 
@@ -234,10 +235,10 @@ Atoms
     # create droplet atoms
     for i in np.arange(particle_xlo,particle_xhi,disDropAtom):
         for j in np.arange(particle_ylo,particle_yhi,disDropAtom):
-	    for k in np.arange(particle_zlo,particle_zhi,disDropAtom):
+            for k in np.arange(particle_zlo,particle_zhi,disDropAtom):
                 number = 1
                 f.write(
-                    str(int(number)+len(cAtomID)*numOfCell+len(bAtomID)*numOfBall+int(numparticlefromwall)*2) + " " + str(1001+numOfCell+numOfBall+number) + " 2 " + str(i) + " " + str(j) + " " + str(k) + "\n"
+                    str(int(number)+len(cAtomID)*numOfCell+len(bAtomID)*numOfBall+int(numparticlefromwall)*2) + " " + str(1001+numOfCell+numOfBall+2+number) + " 3 " + str(i) + " " + str(j) + " " + str(k) + "\n"
                 )
                 number += 1
     f.write(
