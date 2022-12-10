@@ -33,9 +33,9 @@ particle_xlo = -25
 particle_xhi = 25
 particle_ylo = -12.5
 particle_yhi = 12.5
-particle_zlo = 100
+particle_zlo = 130
 particle_zhi = 138
-disDropAtom = 1.5
+disDropAtom = 3
 numberofparticle = np.arange(particle_xlo,particle_xhi,disDropAtom).size * np.arange(particle_ylo,particle_yhi,disDropAtom) .size * np.arange(particle_zlo,particle_zhi,disDropAtom).size
 distBetweenCellAndBall = -50
 distOfCell = 5 + 20.0
@@ -56,7 +56,7 @@ distbetweenparticleofwall = 0.5
 deltaedge = 0.1
 numparticlefromwall = len(np.arange(xlo+deltaedge,xhi-deltaedge,distbetweenparticleofwall))*len(np.arange(ylo+deltaedge,yhi-deltaedge,distbetweenparticleofwall)) 
 
-with open(inputfilename1,'r') as f:
+with open(inputfilename,'r') as f:
     ncount = 0
     for line in f.readlines():
         ncount = ncount + 1
@@ -96,7 +96,7 @@ with open(inputfilename1,'r') as f:
         elif re.search('Dihedrals',line):
             cndihedralstart = ncount + 2
             cndihedralend = cndihedralstart + cndihedral - 1
-with open(inputfilename1,'r') as f:
+with open(inputfilename,'r') as f:
     ncount = 0
     for line in f.readlines():
         ncount = ncount + 1
