@@ -2,6 +2,9 @@ import sys
 import scipy.spatial as ss
 import numpy as np
 import re
+from typing import List
+import argparse
+import json
 
 class Box:
     def __init__(self, xlo=0, xhi=0, ylo=0, yhi=0, zlo=0, zhi=0):
@@ -33,22 +36,23 @@ class System:
         self.masstypes = []
 
         # Initialize atom, bond, angle and dihedral properties
-        self.atoms = [Atom]
-        self.bonds = [Bond]
-        self.angles = [Angle]
-        self.dihedrals = [Dihedral]      
+        self.atoms: List[Atom] = []
+        self.bonds: List[Bond] = []
+        self.angles: List[Angle] = []
+        self.dihedrals: List[Dihedral] = []  
 
 class Atom:
-    def __init__(self, idx = 0, type = 0, x = 0.0, y = 0.0, z = 0.0, mass = 0.0):
-        self.idx = idx
+    def __init__(self, idx:int = 0, type:int = 0, x:float = 0.0, y:float = 0.0, z:float = 0.0, mass:float = 0.0, molidx:int = None):
+        self.idx:int = idx
         self.type = type
         self.x = x
         self.y = y
         self.z = z
-        self.mass = mass  
+        self.mass:float = mass
+        self.molidx = 1000 + molidx
 
 class Bond:
-    def __init__(self, idx, type, atom1, atom2, length):
+    def __init__(self, idx:int = 0, type:int = 0, atom1:int = 0, atom2:int = 0, length:float = 0):
         self.idx = idx
         self.type = type
         self.atom1 = atom1
@@ -56,7 +60,7 @@ class Bond:
         self.length = length
 
 class Angle:
-    def __init__(self, idx, type, atom1, atom2, atom3, area):
+    def __init__(self, idx:int = 0, type:int = 0, atom1:int = 0, atom2:int = 0, atom3:int = 0, area:float = 0.0):
         self.idx = idx
         self.type = type
         self.atom1 = atom1
@@ -65,7 +69,7 @@ class Angle:
         self.area = area
 
 class Dihedral:
-    def __init__(self, idx, type, atom1, atom2, atom3, atom4):
+    def __init__(self, idx:int = 0, type:int = 0, atom1:int = 0, atom2:int = 0, atom3:int = 0, atom4:int = 0):
         self.idx = idx
         self.type = type
         self.atom1 = atom1
@@ -73,12 +77,13 @@ class Dihedral:
         self.atom3 = atom3
         self.atom4 = atom4
 
-class Molecule(Atom, Bond, Angle, Dihedral):
+class Model:
     def __init__(self, system:System, molidx = 0):
-        self.atoms = system.atoms
-        self.bonds = system.bonds
-        self.angles = system.angles
-        self.dihedrals = system.dihedrals
+        self.atoms: List[Atom] = system.atoms
+
+        self.bonds: List[Bond] = system.bonds
+        self.angles: List[Angle] = system.angles
+        self.dihedrals: List[Dihedral] = system.dihedrals
         self.molidx = 1000 + molidx
 
     @property
@@ -174,7 +179,7 @@ class IO:
         self._label_tag_angle = []
         self._label_tag_dihedral = []
 
-    def read_file(self,system:System):
+    def read_file_LAMMPS(self, system:System):
         with open(self.input_file_name, 'r') as f:
             ncount = 0
             for line in f.readlines():
@@ -254,7 +259,7 @@ class IO:
                     dihedral.atom4 = line[5]
                     system.dihedrals.append(dihedral)
     
-    def output(self,system:System):
+    def output_LAMMPS(self, system:System):
         with open(self.output_file_name, 'w') as f:
             f.write("LAMMPS Description\n\n")
             f.write("%d atoms\n" % system.natoms)
@@ -292,26 +297,57 @@ class IO:
                 f.write("%d %d %d %d %d %d\n" % (system.dihedrals[i].idx, system.dihedrals[i].type, system.dihedrals[i].atom1, system.dihedrals[i].atom2, system.dihedrals[i].atom3, system.dihedrals[i].atom4))
             f.write("\n")
 
-# 创建一个 System 对象
-system = System()
+def creat_mol(io:IO):
+    system = System()
+    io.read_file_LAMMPS('capsule.data', system)
+    cell = Model(system, molidx = 1)
+    return cell
 
-# 创建一个 IO 对象
-io = IO()
+def init():
+    # 创建一个 IO 对象
+    global parameters
+    args = parse_args()
+    parameters = load_json(args.json_file)
+    return parameters
 
-# 读取文件，并使用读取到的数据更新 system 对象
-io.read_file('capsule.data', system)
+def load_json(json_file):
+    with open(json_file, "r") as f:
+        data = json.load(f)
+    return data
 
-# 创建cell分子
-cell = Molecule(system, 1)
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("json_file", type=str, help="a JSON file")
+    parser.add_argument("-i","--input",required=True, help="input file")
+    parser.add_argument("--output", type=str, default="output.txt", help="output file")
+    return parser.parse_args()
 
-# 设置系统atom，bond，angle，dihedral类型
-system.atomtypes = 3
-system.bondtypes = 2
-system.anglestypes = 2
-system.dihedraltypes = 2
+def creat_system(system:System, parameters):
+    json = parameters.json_file
+    # 设置系统atom，bond，angle，dihedral类型
+    system.atomtypes = 3
+    system.bondtypes = 2
+    system.anglestypes = 2
+    system.dihedraltypes = 2
+    # 设置系统质量类型和参数
+    system.masstypes = [1.0 for _ in range(system.atomtypes)]
 
-# 设置系统质量类型和参数
-system.masstypes = [1.0 for _ in range(system.atomtypes)]
+def main():
+    # 初始化
+    io = IO()
+    system = System()
+    params = init()
 
-# 写入文件，并把system对象输出到文件中
-io.output('init.data',system)
+    # 构造cell模型
+    cell = creat_mol(io)
+    # 构造wall
+    # 构造dpd粒子
+
+    # 构建系统
+    creat_system(system, params)
+
+    # 写入文件，并把system对象输出到文件中
+    io.output_LAMMPS('init.data',system)
+
+if __name__ is "__main__":
+    main()
