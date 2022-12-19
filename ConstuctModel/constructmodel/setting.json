@@ -1,0 +1,34 @@
+{
+    "system":{
+        "type_atom":3,
+        "type_bond":1,
+        "type_angle":1,
+        "type_dihedral":1
+    },
+    "box":{
+        "xlo":-25,
+        "xhi":25,
+        "ylo":-12.5,
+        "yhi":12.5,
+        "zlo":-150,
+        "zhi":150
+        },
+    "cell":{
+        "num_cell_x":2,
+        "num_cell_y":1,
+        "gap_cells":25.0
+        },
+    "particle":{
+        "xlo_particle":-25,
+        "xhi_particle":25,
+        "ylo_particle":-12.5,
+        "yhi_particle":12.5,
+        "zlo_particle":130,
+        "zhi_particle":138,
+        "rho_particle":3
+        },
+    "wall":{
+        "dist_from_box":10,
+        "rho_wall":0.5
+        }
+}
