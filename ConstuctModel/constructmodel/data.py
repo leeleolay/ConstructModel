@@ -37,7 +37,7 @@ class Dihedral:
         self.atom3 = atom3
         self.atom4 = atom4
 
-class Model(System):
+class Molecule:
     def __init__(self, molidx = 0):
         self.atoms: List[Atom] = []
 
@@ -47,10 +47,12 @@ class Model(System):
         self.molidx = 1000 + molidx
 
     def creat_from_system(self, system:System):
-        self.atoms: List[Atom] = system.atoms
-        self.bonds: List[Bond] = system.bonds
-        self.angles: List[Angle] = system.angles
-        self.dihedrals: List[Dihedral] = system.dihedrals
+        molecule = Molecule()
+        molecule.atoms: List[Atom] = system.atoms
+        molecule.bonds: List[Bond] = system.bonds
+        molecule.angles: List[Angle] = system.angles
+        molecule.dihedrals: List[Dihedral] = system.dihedrals
+        return molecule
 
 
     @property

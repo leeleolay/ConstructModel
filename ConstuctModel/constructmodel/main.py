@@ -6,31 +6,35 @@ from typing import Dict
 from .system import System
 from .myio import MyIO
 from .data import *
+from .box import Box
 
-def creat_mol(io:MyIO):
+def create_mol():
     system = System()
-    io.read_file_LAMMPS('capsule.data', system)
-    cell = Model(system, molidx = 1)
+    MyIO.read_LAMMPS('capsule.data', system)
+    cell = Molecule.creat_from_system(system)
     return cell
 
-def init():
-    # 创建一个 IO 对象
+def create_box(params:Dict):
+    box = Box()
+    box.xlo = params['xlo']
+    box.xhi = params['xhi']
+    box.ylo = params['ylo']
+    box.yhi = params['yhi']
+    box.zlo = params['zlo']
+    box.zhi = params['zhi']
+    return box
+
+def init_io(io:MyIO):
     global parameters
     args = MyIO.parse_args()
-    parameters:Dict = MyIO.load_json(args.json_file)
+    parameters:Dict = MyIO.load_json(args.jsonfile)
+    io.input_file_name = args.input
+    io.output_file_name = args.output
     return parameters
 
-def init_system(system:System, parameters):
-    json = parameters.json_file
-    # 设置系统atom，bond，angle，dihedral类型
-    system.atomtypes = 3
-    system.bondtypes = 2
-    system.angletypes = 2
-    system.dihedraltypes = 2
-    # 设置系统质量类型和参数
-    system.masstypes = [1.0 for _ in range(system.atomtypes)]
 
-def init_params(params):
+def process_params(params):
+    # 处理wall参数
     xlo_wall_up = xlo_wall_down = params['box']['xlo']
     xhi_wall_up = xhi_wall_down = params['box']['xhi']
     ylo_wall_up = ylo_wall_down = params['box']['ylo']
@@ -100,25 +104,27 @@ def creat_particle(params:Dict):
 def main():
     # 初始化
     io = MyIO('capsule.data', 'init.data')
-    system = System()
-    params = init()
-    params = init_params(params)
+    params = init_io(io)
+    params = process_params(params)
 
+    # 构造box
+    box = create_box(params['box'])
     # 构造cell模型
-    cell = creat_mol(io)
+    cell = create_mol(io)
     # 构造wall
     wall = creat_wall(params['wall'])
     # 构造dpd粒子
     particle = creat_particle(params['particle'])
 
     # 构建系统
-    init_system(system, params)
-    system.update_system(cell)
+    system = System()
+    system.update_box(box)
+    system.update_molecule(cell)
     system.update_atom(wall)
     system.update_atom(particle)
 
     # 写入文件，并把system对象输出到文件中
-    io.output_LAMMPS('init.data',system)
+    io.write_LAMMPS(io.output_file_name,system)
 
 if __name__ == "__main__":
     main()
