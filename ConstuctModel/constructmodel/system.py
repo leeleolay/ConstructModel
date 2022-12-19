@@ -1,26 +1,8 @@
-import sys
-import scipy.spatial as ss
-import numpy as np
-import re
-from typing import List
-import argparse
-import json
-
-class Box:
-    def __init__(self, xlo=0, xhi=0, ylo=0, yhi=0, zlo=0, zhi=0):
-        self.xlo = xlo
-        self.xhi = xhi
-        self.ylo = ylo
-        self.yhi = yhi
-        self.zlo = zlo
-        self.zhi = zhi
-
-    @property
-    def size(self):
-        return (self.xhi - self.xlo, self.yhi - self.ylo, self.zhi - self.zlo)
+from .box import Box
+from .data import *
 
 class System:
-    def __init__(self, box:Box):
+    def __init__(self, box:Box = None):
         # Initialize system properties
         self.box = box
         self.natoms = 0
@@ -30,324 +12,59 @@ class System:
 
         self.atomtypes = 0
         self.bondtypes = 0
-        self.anglestypes = 0
+        self.angletypes = 0
         self.dihedraltypes = 0
 
-        self.masstypes = []
+        self.masstypes = 0
 
         # Initialize atom, bond, angle and dihedral properties
         self.atoms: List[Atom] = []
         self.bonds: List[Bond] = []
         self.angles: List[Angle] = []
         self.dihedrals: List[Dihedral] = []  
-
-class Atom:
-    def __init__(self, idx:int = 0, type:int = 0, x:float = 0.0, y:float = 0.0, z:float = 0.0, mass:float = 0.0, molidx:int = None):
-        self.idx:int = idx
-        self.type = type
-        self.x = x
-        self.y = y
-        self.z = z
-        self.mass:float = mass
-        self.molidx = 1000 + molidx
-
-class Bond:
-    def __init__(self, idx:int = 0, type:int = 0, atom1:int = 0, atom2:int = 0, length:float = 0):
-        self.idx = idx
-        self.type = type
-        self.atom1 = atom1
-        self.atom2 = atom2
-        self.length = length
-
-class Angle:
-    def __init__(self, idx:int = 0, type:int = 0, atom1:int = 0, atom2:int = 0, atom3:int = 0, area:float = 0.0):
-        self.idx = idx
-        self.type = type
-        self.atom1 = atom1
-        self.atom2 = atom2
-        self.atom3 = atom3
-        self.area = area
-
-class Dihedral:
-    def __init__(self, idx:int = 0, type:int = 0, atom1:int = 0, atom2:int = 0, atom3:int = 0, atom4:int = 0):
-        self.idx = idx
-        self.type = type
-        self.atom1 = atom1
-        self.atom2 = atom2
-        self.atom3 = atom3
-        self.atom4 = atom4
-
-class Model:
-    def __init__(self, system:System, molidx = 0):
-        self.atoms: List[Atom] = system.atoms
-
-        self.bonds: List[Bond] = system.bonds
-        self.angles: List[Angle] = system.angles
-        self.dihedrals: List[Dihedral] = system.dihedrals
-        self.molidx = 1000 + molidx
-
-    @property
-    def centroid(self):
-        total_mass = 0.0
-        centroid_x = 0.0
-        centroid_y = 0.0
-        centroid_z = 0.0
-
-        for atom in self.atoms:
-            total_mass += atom.mass
-            centroid_x += atom.x * atom.mass
-            centroid_y += atom.y * atom.mass
-            centroid_z += atom.z * atom.mass
-
-        centroid_x /= total_mass
-        centroid_y /= total_mass
-        centroid_z /= total_mass
-
-        return (centroid_x, centroid_y, centroid_z)
-
-    @property
-    def geometric_center(self):
-        min_x = float('inf')
-        min_y = float('inf')
-        min_z = float('inf')
-        max_x = float('-inf')
-        max_y = float('-inf')
-        max_z = float('-inf')
-
-        for atom in self.atoms:
-            min_x = min(min_x, atom.x)
-            min_y = min(min_y, atom.y)
-            min_z = min(min_z, atom.z)
-            max_x = max(max_x, atom.x)
-            max_y = max(max_y, atom.y)
-            max_z = max(max_z, atom.z)
-
-        geometric_center_x = (min_x + max_x) / 2
-        geometric_center_y = (min_y + max_y) / 2
-        geometric_center_z = (min_z + max_z) / 2
-
-        return (geometric_center_x, geometric_center_y, geometric_center_z)
-
-    @property
-    def min_x(self):
-        min_x = float('inf')
-        for atom in self.atoms:
-            min_x = min(min_x, atom.x)
-        return min_x
     
-    @property
-    def min_y(self):
-        min_y = float('inf')
-        for atom in self.atoms:
-            min_y = min(min_y, atom.y) 
-        return min_y
+    def update_box(self, box:Box):
+        self.box = box
     
-    @property
-    def min_z(self):
-        min_z = float('inf')
-        for atom in self.atoms:
-            min_z = min(min_z, atom.z)
-        return min_z
+    def update_system(self, model:Model):
+        self.update_atom(model.atoms)
+        self.update_bond(model.bonds)
+        self.update_angle(model.angles)
+        self.update_dihedral(model.dihedrals)
+
+    def update_atom(self, model:List[Atom]):
+        for i in range(model.__len__):
+            item:Atom = model[i]
+            item.idx += self.natoms
+            item.type += self.atomtypes
+            self.atoms.append(item)
+            self.natoms += 1
+        self.masstypes += 1
+        self.atomtypes += 1
     
-    @property
-    def max_x(self):
-        max_x = float('inf')
-        for atom in self.atoms:
-            max_x = max(max_x, atom.x)
-        return max_x
-    
-    @property
-    def max_y(self):
-        max_y = float('inf')
-        for atom in self.atoms:
-            max_y = max(max_y, atom.y)
-        return max_y
+    def update_bond(self, model:List[Bond]):
+        for i in range(model.__len__):
+            item:Bond = model[i]
+            item.idx += self.nbonds
+            item.type += self.bondtypes
+            self.bonds.append(item)
+            self.nbonds += 1
+        self.bondtypes += 1
 
-    @property
-    def max_z(self):
-        max_z = float('inf')
-        for atom in self.atoms:
-            max_z = max(max_z, atom.z)
-        return max_z
+    def update_angle(self, model:List[Angle]):
+        for i in range(model.__len__):
+            item:Angle = model[i]
+            item.idx += self.nangles
+            item.type += self.angletypes
+            self.angles.append(item) 
+            self.nangles += 1
+        self.angletypes += 1
 
-class IO:
-    def __init__(self, input_file_name:str, output_file_name:str):
-        self.input_file_name = input_file_name
-        self.output_file_name = output_file_name
-        self._label_tag_atom = []
-        self._label_tag_bond = []
-        self._label_tag_angle = []
-        self._label_tag_dihedral = []
-
-    def read_file_LAMMPS(self, system:System):
-        with open(self.input_file_name, 'r') as f:
-            ncount = 0
-            for line in f.readlines():
-                ncount = ncount + 1
-                if re.search('.*xlo xhi',line):
-                    line = line.strip().split()
-                    system.box.xlo = float(line[0])
-                    system.box.xhi = float(line[1])
-                elif re.search('.*ylo yhi',line):
-                    line = line.strip().split()
-                    system.box.xlo= float(line[0])
-                    system.box.yhi = float(line[1])
-                elif re.search('.*zlo zhi',line):
-                    line = line.strip().split()
-                    system.box.zlo = float(line[0])
-                    system.box.zhi = float(line[1])
-                elif re.search('.*atoms',line):
-                    line = line.strip().split()
-                    system.natoms = int(line[0])
-                elif re.search('.*bonds',line):
-                    line = line.strip().split()
-                    system.nbonds = int(line[0])
-                elif re.search('.*angles',line):
-                    line = line.strip().split()
-                    system.nangles = int(line[0])
-                elif re.search('.*dihedrals',line):
-                    line = line.strip().split()
-                    system.ndihedrals = int(line[0])
-                elif re.search('Atoms',line):
-                    self._label_tag_atom.append(ncount + 2)
-                    self._label_tag_atom.append(ncount + system.natoms + 1)
-                elif re.search('Bonds',line):
-                    self._label_tag_bond.append(ncount + 2)
-                    self._label_tag_bond.append(ncount + system.nbonds + 1)
-                elif re.search('Angles',line):
-                    self._label_tag_angle.append(ncount + 2)
-                    self._label_tag_angle.append(ncount + system.nangles + 1)
-                elif re.search('Dihedrals',line):
-                    self._label_tag_dihedral.append(ncount + 2)
-                    self._label_tag_dihedral.append(ncount + system.ndihedrals + 1)
-        with open(self.input_file_name,'r') as f:
-            ncount = 0
-            atom = Atom()
-            bond = Bond()
-            angle = Angle()
-            dihedral = Dihedral()
-            for line in f.readlines():
-                ncount = ncount + 1
-                if ncount >= self._label_tag_atom[0] and ncount <= self._label_tag_atom[1]:
-                    line = line.strip().split()
-                    atom.idx = line[0]
-                    atom.x = line[3]
-                    atom.y = line[4]
-                    atom.z = line[5]
-                    system.atoms.append(atom)
-                if ncount >= self._label_tag_bond[0] and ncount <= self._label_tag_bond[1]:
-                    line = line.strip().split()
-                    bond.idx = line[0]
-                    bond.atom1 = line[2]
-                    bond.atom1 = line[3]
-                    bond.length = line[4]
-                    system.angles.append(bond)
-                if ncount >= self._label_tag_angle[0] and ncount <= self._label_tag_angle[1]:
-                    line = line.strip().split()
-                    angle.idx = line[0]
-                    angle.atom1 = line[2]
-                    angle.atom2 = line[3]
-                    angle.atom3 = line[4]
-                    angle.area = line[5]
-                    system.angles.append(angle)
-                if ncount >= self._label_tag_angle[0] and ncount <= self._label_tag_angle[1]:
-                    line = line.strip().split()
-                    dihedral.idx = line[0]
-                    dihedral.atom1 = line[2]
-                    dihedral.atom2 = line[3]
-                    dihedral.atom3 = line[4]
-                    dihedral.atom4 = line[5]
-                    system.dihedrals.append(dihedral)
-    
-    def output_LAMMPS(self, system:System):
-        with open(self.output_file_name, 'w') as f:
-            f.write("LAMMPS Description\n\n")
-            f.write("%d atoms\n" % system.natoms)
-            f.write("%d bonds\n" % system.nbonds)
-            f.write("%d angles\n" % system.nangles)
-            f.write("%d dihedrals\n" % system.ndihedrals)
-            f.write("\n")
-            f.write("%d atom types\n" % system.atomtypes)
-            f.write("%d bond types\n" % system.bondtypes)
-            f.write("%d angle types\n" % system.anglestypes)
-            f.write("%d dihedral types\n" % system.dihedraltypes)
-            f.write("\n")
-            f.write("%f %f xlo xhi\n" % (system.box.xlo, system.box.xhi))
-            f.write("%f %f ylo yhi\n" % (system.box.ylo, system.box.yhi))
-            f.write("%f %f zlo zhi\n" % (system.box.zlo, system.box.zhi))
-            f.write("\n")
-            f.write("Masses\n\n")
-            for i in range(1, system.atomtypes):
-                f.write("%d %f\n" % (i, system.masstypes[i-1]))
-            f.write("\n")
-            f.write("Atoms\n\n")
-            for i in range(system.natoms):
-                f.write("%d %d %d %f %f %f\n" % (system.atoms[i].idx, system.atoms[i].molidx, system.atoms[i].type, system.atoms[i].x, system.atoms[i].y, system.atoms[i].z))
-            f.write("\n")
-            f.write("Bonds\n\n")
-            for i in range(system.nbonds):
-                f.write("%d %d %d %d %f\n" % (system.bonds[i].idx, system.bonds[i].type, system.bonds[i].atom1, system.bonds[i].atom2, system.bonds[i].length))
-            f.write("\n")
-            f.write("Angles\n\n")
-            for i in range(system.angles):
-                f.write("%d %d %d %d %d %f\n" % (system.angles[i].idx, system.angles[i].type, system.angles[i].atom1, system.angles[i].atom2, system.angles[i].atom3, system.angles[i].area))
-            f.write("\n")
-            f.write("Dihedrals\n\n")
-            for i in range(system.ndihedrals):
-                f.write("%d %d %d %d %d %d\n" % (system.dihedrals[i].idx, system.dihedrals[i].type, system.dihedrals[i].atom1, system.dihedrals[i].atom2, system.dihedrals[i].atom3, system.dihedrals[i].atom4))
-            f.write("\n")
-
-def creat_mol(io:IO):
-    system = System()
-    io.read_file_LAMMPS('capsule.data', system)
-    cell = Model(system, molidx = 1)
-    return cell
-
-def init():
-    # 创建一个 IO 对象
-    global parameters
-    args = parse_args()
-    parameters = load_json(args.json_file)
-    return parameters
-
-def load_json(json_file):
-    with open(json_file, "r") as f:
-        data = json.load(f)
-    return data
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("json_file", type=str, help="a JSON file")
-    parser.add_argument("-i","--input",required=True, help="input file")
-    parser.add_argument("--output", type=str, default="output.txt", help="output file")
-    return parser.parse_args()
-
-def creat_system(system:System, parameters):
-    json = parameters.json_file
-    # 设置系统atom，bond，angle，dihedral类型
-    system.atomtypes = 3
-    system.bondtypes = 2
-    system.anglestypes = 2
-    system.dihedraltypes = 2
-    # 设置系统质量类型和参数
-    system.masstypes = [1.0 for _ in range(system.atomtypes)]
-
-def main():
-    # 初始化
-    io = IO()
-    system = System()
-    params = init()
-
-    # 构造cell模型
-    cell = creat_mol(io)
-    # 构造wall
-    # 构造dpd粒子
-
-    # 构建系统
-    creat_system(system, params)
-
-    # 写入文件，并把system对象输出到文件中
-    io.output_LAMMPS('init.data',system)
-
-if __name__ is "__main__":
-    main()
+    def update_dihedral(self, model:List[Dihedral]):
+        for i in range(model.__len__):
+            item:Dihedral = model[i]
+            item.idx += self.ndihedrals
+            item.type += self.dihedraltypes
+            self.dihedrals.append(item)
+            self.ndihedrals += 1
+        self.dihedraltypes += 1
