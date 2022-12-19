@@ -56,7 +56,7 @@ distbetweenparticleofwall = 0.5
 deltaedge = 0.1
 numparticlefromwall = len(np.arange(xlo+deltaedge,xhi-deltaedge,distbetweenparticleofwall))*len(np.arange(ylo+deltaedge,yhi-deltaedge,distbetweenparticleofwall)) 
 
-with open(inputfilename,'r') as f:
+with open(inputfilename1,'r') as f:
     ncount = 0
     for line in f.readlines():
         ncount = ncount + 1
@@ -96,7 +96,7 @@ with open(inputfilename,'r') as f:
         elif re.search('Dihedrals',line):
             cndihedralstart = ncount + 2
             cndihedralend = cndihedralstart + cndihedral - 1
-with open(inputfilename,'r') as f:
+with open(inputfilename1,'r') as f:
     ncount = 0
     for line in f.readlines():
         ncount = ncount + 1

@@ -2,9 +2,8 @@ from .box import Box
 from .data import *
 
 class System:
-    def __init__(self, box:Box = None):
-        # Initialize system properties
-        self.box = box
+    def __init__(self):
+        self.box = Box()
         self.natoms = 0
         self.nbonds = 0
         self.nangles = 0
@@ -15,9 +14,8 @@ class System:
         self.angletypes = 0
         self.dihedraltypes = 0
 
-        self.masstypes = 0
+        self.masses = []
 
-        # Initialize atom, bond, angle and dihedral properties
         self.atoms: List[Atom] = []
         self.bonds: List[Bond] = []
         self.angles: List[Angle] = []
@@ -26,20 +24,20 @@ class System:
     def update_box(self, box:Box):
         self.box = box
     
-    def update_system(self, model:Model):
-        self.update_atom(model.atoms)
-        self.update_bond(model.bonds)
-        self.update_angle(model.angles)
-        self.update_dihedral(model.dihedrals)
+    def update_molecule(self, molecule:Molecule):
+        self.update_atom(molecule.atoms)
+        self.update_bond(molecule.bonds)
+        self.update_angle(molecule.angles)
+        self.update_dihedral(molecule.dihedrals)
 
     def update_atom(self, model:List[Atom]):
-        for i in range(model.__len__):
+        for i in range(len(model)):
             item:Atom = model[i]
             item.idx += self.natoms
             item.type += self.atomtypes
             self.atoms.append(item)
             self.natoms += 1
-        self.masstypes += 1
+        self.masses.append(model[-1].mass)
         self.atomtypes += 1
     
     def update_bond(self, model:List[Bond]):
@@ -68,3 +66,6 @@ class System:
             self.dihedrals.append(item)
             self.ndihedrals += 1
         self.dihedraltypes += 1
+
+    def update_box(self, box:Box):
+        self.box = box
