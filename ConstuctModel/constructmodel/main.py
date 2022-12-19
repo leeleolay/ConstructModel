@@ -1,4 +1,4 @@
-import sys
+cimport sys
 import scipy.spatial as ss
 import numpy as np
 from typing import Dict
@@ -14,6 +14,44 @@ def create_mol():
     cell = Molecule.creat_from_system(system)
     return cell
 
+def create_mols(cell:Molecule, params:Dict):
+    num = params['num_cell_x'] * params['num_cell_y']
+    cells = Molecule()
+    for i in range(num):
+        dist_trans_x = params['cell']['x_center'][i]
+        dist_trans_y = params['cell']['y_center'][i]
+        dist_trans_z = params['cell']['z_center'][i]
+        
+        idx_atom = 0
+        for j in range(len(cell.atoms)):
+            cell.atoms[j].idx += idx_atom
+            cell.atoms[j].x += dist_trans_x
+            cell.atoms[j].y += dist_trans_y
+            cell.atoms[j].z += dist_trans_z
+            cell.atoms[j].molidx += i
+        idx_atom += len(cell.atoms)
+
+        idx_bond = 0
+        for j in range(len(cell.bonds)):
+            cell.bonds[j].idx += idx_bond
+        idx_bond += len(cell.bonds)
+
+        idx_angle = 0
+        for j in range(len(cell.angles)):
+            cell.angles[j].idx += idx_angle
+        idx_angle += len(cell.angles)
+
+        idx_dihedral = 0
+        for j in range(len(cell.dihedrals)):
+            cell.dihedrals[j].idx += idx_dihedral
+        idx_dihedral += len(cell.dihedrals)
+
+        cells.atoms.append(cell.atoms)
+        cells.bonds.append(cell.bonds)
+        cells.angles.append(cell.angles)
+        cells.dihedrals.append(cell.dihedrals)  
+    return cells
+
 def create_box(params:Dict):
     box = Box()
     box.xlo = params['xlo']
@@ -25,12 +63,13 @@ def create_box(params:Dict):
     return box
 
 def init_io(io:MyIO):
-    global parameters
+    global params
     args = MyIO.parse_args()
-    parameters:Dict = MyIO.load_json(args.jsonfile)
+    params:Dict = MyIO.load_json(args.jsonfile)
+    params = process_params(params)
     io.input_file_name = args.input
     io.output_file_name = args.output
-    return parameters
+    return params
 
 
 def process_params(params):
@@ -56,6 +95,18 @@ def process_params(params):
         zlo_wall_down = zlo_wall_down,
         zhi_wall_up = zhi_wall_up,
         zhi_wall_down = zhi_wall_down
+    )
+    # 处理cell参数
+    gap_cells = params['box']['xhi']-params['box']['xlo']-params['cell']['length_x']
+    x_center = []
+    x_center.append(0 - gap_cells/2)
+    x_center.append(0 + gap_cells/2)
+    y_center = [0.0, 0.0]
+    z_center = [0.0, 0.0]
+    params['cell']:Dict.update(
+        x_center = x_center,
+        y_center = y_center,
+        z_center = z_center
     )
     return params
 
@@ -105,12 +156,12 @@ def main():
     # 初始化
     io = MyIO('capsule.data', 'init.data')
     params = init_io(io)
-    params = process_params(params)
 
     # 构造box
     box = create_box(params['box'])
     # 构造cell模型
     cell = create_mol(io)
+    cells = create_mols(cell)
     # 构造wall
     wall = creat_wall(params['wall'])
     # 构造dpd粒子
@@ -119,7 +170,7 @@ def main():
     # 构建系统
     system = System()
     system.update_box(box)
-    system.update_molecule(cell)
+    system.update_molecule(cells)
     system.update_atom(wall)
     system.update_atom(particle)
 

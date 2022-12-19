@@ -1,10 +1,4 @@
 {
-    "system":{
-        "type_atom":3,
-        "type_bond":1,
-        "type_angle":1,
-        "type_dihedral":1
-    },
     "box":{
         "xlo":-25,
         "xhi":25,
@@ -16,7 +10,9 @@
     "cell":{
         "num_cell_x":2,
         "num_cell_y":1,
-        "gap_cells":25.0
+        "length_x":20,
+        "length_y":20,
+        "length_z":70
         },
     "particle":{
         "xlo_particle":-25,
