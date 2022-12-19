@@ -1,4 +1,4 @@
-cimport sys
+import sys
 import scipy.spatial as ss
 import numpy as np
 from typing import Dict
