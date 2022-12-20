@@ -1,5 +1,5 @@
-from .box import Box
-from .data import *
+from box import Box
+from data import *
 
 class System:
     def __init__(self):
@@ -41,7 +41,7 @@ class System:
         self.atomtypes += 1
     
     def update_bond(self, model:List[Bond]):
-        for i in range(model.__len__):
+        for i in range(len(model)):
             item:Bond = model[i]
             item.idx += self.nbonds
             item.type += self.bondtypes
@@ -50,7 +50,7 @@ class System:
         self.bondtypes += 1
 
     def update_angle(self, model:List[Angle]):
-        for i in range(model.__len__):
+        for i in range(len(model)):
             item:Angle = model[i]
             item.idx += self.nangles
             item.type += self.angletypes
@@ -59,7 +59,7 @@ class System:
         self.angletypes += 1
 
     def update_dihedral(self, model:List[Dihedral]):
-        for i in range(model.__len__):
+        for i in range(len(model)):
             item:Dihedral = model[i]
             item.idx += self.ndihedrals
             item.type += self.dihedraltypes

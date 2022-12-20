@@ -1,52 +1,51 @@
-from .system import System
 from typing import List
+import importlib
 
 class Atom:
-    def __init__(self, idx:int = 0, type:int = 0, x:float = 0.0, y:float = 0.0, z:float = 0.0, mass:float = 0.0, molidx:int = None):
+    def __init__(self, idx:int = 0, type:int = 0, x:float = 0.0, y:float = 0.0, z:float = 0.0, mass:float = 0.0, molidx:int = 0):
         self.idx:int = idx
-        self.type = type
-        self.x = x
-        self.y = y
-        self.z = z
+        self.type:int = type
+        self.x:float = x
+        self.y:float = y
+        self.z:float = z
         self.mass:float = mass
-        self.molidx = 1000 + molidx
+        self.molidx:int = 1000 + molidx
 
 class Bond:
     def __init__(self, idx:int = 0, type:int = 0, atom1:int = 0, atom2:int = 0, length:float = 0):
-        self.idx = idx
-        self.type = type
-        self.atom1 = atom1
-        self.atom2 = atom2
-        self.length = length
+        self.idx:int = idx
+        self.type:int = type
+        self.atom1:int = atom1
+        self.atom2:int = atom2
+        self.length:float = length
 
 class Angle:
     def __init__(self, idx:int = 0, type:int = 0, atom1:int = 0, atom2:int = 0, atom3:int = 0, area:float = 0.0):
-        self.idx = idx
-        self.type = type
-        self.atom1 = atom1
-        self.atom2 = atom2
-        self.atom3 = atom3
-        self.area = area
+        self.idx:int = idx
+        self.type:int = type
+        self.atom1:int = atom1
+        self.atom2:int = atom2
+        self.atom3:int = atom3
+        self.area:float = area
 
 class Dihedral:
     def __init__(self, idx:int = 0, type:int = 0, atom1:int = 0, atom2:int = 0, atom3:int = 0, atom4:int = 0):
-        self.idx = idx
-        self.type = type
-        self.atom1 = atom1
-        self.atom2 = atom2
-        self.atom3 = atom3
-        self.atom4 = atom4
+        self.idx:int = idx
+        self.type:int = type
+        self.atom1:int = atom1
+        self.atom2:int = atom2
+        self.atom3:int = atom3
+        self.atom4:int = atom4
 
 class Molecule:
-    def __init__(self, molidx = 0):
+    def __init__(self):
         self.atoms: List[Atom] = []
 
         self.bonds: List[Bond] = []
         self.angles: List[Angle] = []
         self.dihedrals: List[Dihedral] = []
-        self.molidx = 1000 + molidx
 
-    def creat_from_system(self, system:System):
+    def creat_from_system(self, system):
         molecule = Molecule()
         molecule.atoms: List[Atom] = system.atoms
         molecule.bonds: List[Bond] = system.bonds

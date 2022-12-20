@@ -2,25 +2,28 @@ import sys
 import scipy.spatial as ss
 import numpy as np
 from typing import Dict
+import copy
 
-from .system import System
-from .myio import MyIO
-from .data import *
-from .box import Box
+from system import System
+from myio import MyIO
+from data import *
+from box import Box
 
-def create_mol():
-    system = System()
-    MyIO.read_LAMMPS('capsule.data', system)
-    cell = Molecule.creat_from_system(system)
+def create_mol(io:MyIO):
+    system_blank = System()
+    moleucle = Molecule()
+    io.read_LAMMPS(system_blank)
+    cell = moleucle.creat_from_system(system_blank)
     return cell
 
-def create_mols(cell:Molecule, params:Dict):
+def create_mols(cell_origin:Molecule, params:Dict):
     num = params['num_cell_x'] * params['num_cell_y']
     cells = Molecule()
     for i in range(num):
-        dist_trans_x = params['cell']['x_center'][i]
-        dist_trans_y = params['cell']['y_center'][i]
-        dist_trans_z = params['cell']['z_center'][i]
+        cell = copy.copy(cell_origin)
+        dist_trans_x = params['x_center'][i]
+        dist_trans_y = params['y_center'][i]
+        dist_trans_z = params['z_center'][i]
         
         idx_atom = 0
         for j in range(len(cell.atoms)):
@@ -46,10 +49,10 @@ def create_mols(cell:Molecule, params:Dict):
             cell.dihedrals[j].idx += idx_dihedral
         idx_dihedral += len(cell.dihedrals)
 
-        cells.atoms.append(cell.atoms)
-        cells.bonds.append(cell.bonds)
-        cells.angles.append(cell.angles)
-        cells.dihedrals.append(cell.dihedrals)  
+        cells.atoms.extend(cell.atoms)
+        cells.bonds.extend(cell.bonds)
+        cells.angles.extend(cell.angles)
+        cells.dihedrals.extend(cell.dihedrals)  
     return cells
 
 def create_box(params:Dict):
@@ -63,10 +66,10 @@ def create_box(params:Dict):
     return box
 
 def init_io(io:MyIO):
-    global params
+    params = dict()
     args = MyIO.parse_args()
     params:Dict = MyIO.load_json(args.jsonfile)
-    params = process_params(params)
+    process_params(params)
     io.input_file_name = args.input
     io.output_file_name = args.output
     return params
@@ -82,7 +85,7 @@ def process_params(params):
     zhi_wall_up = params['box']['zhi']-params['wall']['dist_from_box']
     zlo_wall_down = params['box']['zlo']+params['wall']['dist_from_box']
     zhi_wall_down = params['box']['zhi']+params['wall']['dist_from_box']+params['wall']['rho_wall']
-    params['wall']:Dict.update(
+    params['wall'].update(
         xlo_wall_up = xlo_wall_up,
         xlo_wall_down = xlo_wall_down,
         xhi_wall_up = xhi_wall_down,
@@ -103,54 +106,54 @@ def process_params(params):
     x_center.append(0 + gap_cells/2)
     y_center = [0.0, 0.0]
     z_center = [0.0, 0.0]
-    params['cell']:Dict.update(
+    params['cell'].update(
         x_center = x_center,
         y_center = y_center,
         z_center = z_center
     )
-    return params
 
 def creat_wall(params:Dict):
     wall:List[Atom] = []
     atom = Atom()
-    atom.idx = 1
+    atom.idx = 0
     atom.mass = 1.0
-    atom.molidx = 1001
+    atom.molidx = 1
     atom.type = 1
-    for i in range(params['xlo_wall_up'],params['xhi_wall_up'],params['rho_wall']):
-        for j in range(params['ylo_wall_up'],params['yhi_wall_up'],params['rho_wall']):
-            for k in range(params['zlo_wall_up'],params['zhi_wall_up'],params['rho_wall']):
+    for i in np.arange(params['xlo_wall_up'],params['xhi_wall_up'],params['rho_wall']):
+        for j in np.arange(params['ylo_wall_up'],params['yhi_wall_up'],params['rho_wall']):
+            for k in np.arange(params['zlo_wall_up'],params['zhi_wall_up'],params['rho_wall']):
                 atom.x = i
                 atom.y = j
                 atom.z = k
-                wall.append(atom)
+                wall.append(copy.copy(atom))
                 atom.idx += 1
     atom.molidx += 1
-    for i in range(params['xlo_wall_down'],params['xhi_wall_down'],params['rho_wall']):
-        for j in range(params['ylo_wall_down'],params['yhi_wall_down'],params['rho_wall']):
-            for k in range(params['zlo_wall_down'],params['zhi_wall_down'],params['rho_wall']):
+    for i in np.arange(params['xlo_wall_down'],params['xhi_wall_down'],params['rho_wall']):
+        for j in np.arange(params['ylo_wall_down'],params['yhi_wall_down'],params['rho_wall']):
+            for k in np.arange(params['zlo_wall_down'],params['zhi_wall_down'],params['rho_wall']):
                 atom.x = i
                 atom.y = j
                 atom.z = k
-                wall.append(atom)
+                wall.append(copy.copy(atom))
                 atom.idx += 1
     return wall
 
 def creat_particle(params:Dict):
-    wall:List[Atom] = []
+    particles:List[Atom] = []
     atom = Atom()
-    atom.idx = 1
+    atom.idx = 0
     atom.mass = 1.0
-    atom.molidx = 1001
+    atom.molidx = 1
     atom.type = 1
-    for i in range(params['xlo_particle'],params['xhi_particle'],params['rho_particle']):
-        for j in range(params['ylo_particle'],params['yhi_particle'],params['rho_particle']):
-            for k in range(params['zlo_particle'],params['zhi_particle'],params['rho_particle']):
+    for i in np.arange(params['xlo_particle'],params['xhi_particle'],params['rho_particle']):
+        for j in np.arange(params['ylo_particle'],params['yhi_particle'],params['rho_particle']):
+            for k in np.arange(params['zlo_particle'],params['zhi_particle'],params['rho_particle']):
                 atom.x = i
                 atom.y = j
                 atom.z = k
-                wall.append(atom)
+                particles.append(copy.copy(atom))
                 atom.idx += 1
+    return particles
 
 def main():
     # 初始化
@@ -161,7 +164,7 @@ def main():
     box = create_box(params['box'])
     # 构造cell模型
     cell = create_mol(io)
-    cells = create_mols(cell)
+    cells = create_mols(cell, params['cell'])
     # 构造wall
     wall = creat_wall(params['wall'])
     # 构造dpd粒子
@@ -175,7 +178,7 @@ def main():
     system.update_atom(particle)
 
     # 写入文件，并把system对象输出到文件中
-    io.write_LAMMPS(io.output_file_name,system)
+    io.write_LAMMPS(system)
 
 if __name__ == "__main__":
     main()
