@@ -9,6 +9,16 @@ from myio import MyIO
 from data import *
 from box import Box
 
+def create_box(params:Dict):
+    box = Box()
+    box.xlo = params['xlo']
+    box.xhi = params['xhi']
+    box.ylo = params['ylo']
+    box.yhi = params['yhi']
+    box.zlo = params['zlo']
+    box.zhi = params['zhi']
+    return box
+
 def create_mol(io:MyIO):
     system_blank = System()
     moleucle = Molecule()
@@ -19,13 +29,17 @@ def create_mol(io:MyIO):
 def create_mols(cell_origin:Molecule, params:Dict):
     num = params['num_cell_x'] * params['num_cell_y']
     cells = Molecule()
+    idx_atom = 0
+    idx_bond = 0
+    idx_angle = 0
+    idx_dihedral = 0
+
     for i in range(num):
         cell = copy.copy(cell_origin)
         dist_trans_x = params['x_center'][i]
         dist_trans_y = params['y_center'][i]
         dist_trans_z = params['z_center'][i]
-        
-        idx_atom = 0
+
         for j in range(len(cell.atoms)):
             cell.atoms[j].idx += idx_atom
             cell.atoms[j].x += dist_trans_x
@@ -34,17 +48,14 @@ def create_mols(cell_origin:Molecule, params:Dict):
             cell.atoms[j].molidx += i
         idx_atom += len(cell.atoms)
 
-        idx_bond = 0
         for j in range(len(cell.bonds)):
             cell.bonds[j].idx += idx_bond
         idx_bond += len(cell.bonds)
 
-        idx_angle = 0
         for j in range(len(cell.angles)):
             cell.angles[j].idx += idx_angle
         idx_angle += len(cell.angles)
 
-        idx_dihedral = 0
         for j in range(len(cell.dihedrals)):
             cell.dihedrals[j].idx += idx_dihedral
         idx_dihedral += len(cell.dihedrals)
@@ -52,18 +63,52 @@ def create_mols(cell_origin:Molecule, params:Dict):
         cells.atoms.extend(cell.atoms)
         cells.bonds.extend(cell.bonds)
         cells.angles.extend(cell.angles)
-        cells.dihedrals.extend(cell.dihedrals)  
+        cells.dihedrals.extend(cell.dihedrals)
+
     return cells
 
-def create_box(params:Dict):
-    box = Box()
-    box.xlo = params['xlo']
-    box.xhi = params['xhi']
-    box.ylo = params['ylo']
-    box.yhi = params['yhi']
-    box.zlo = params['zlo']
-    box.zhi = params['zhi']
-    return box
+def creat_wall(params:Dict):
+    wall:List[Atom] = []
+    atom = Atom()
+    atom.idx = 0
+    atom.mass = 2.0
+    atom.molidx = 1
+    atom.type = 1
+    for i in np.arange(params['xlo_wall_up'],params['xhi_wall_up'],params['rho_wall']):
+        for j in np.arange(params['ylo_wall_up'],params['yhi_wall_up'],params['rho_wall']):
+            for k in np.arange(params['zlo_wall_up'],params['zhi_wall_up'],params['rho_wall']):
+                atom.x = i
+                atom.y = j
+                atom.z = k
+                wall.append(copy.copy(atom))
+                atom.idx += 1
+    atom.molidx += 1
+    for i in np.arange(params['xlo_wall_down'],params['xhi_wall_down'],params['rho_wall']):
+        for j in np.arange(params['ylo_wall_down'],params['yhi_wall_down'],params['rho_wall']):
+            for k in np.arange(params['zlo_wall_down'],params['zhi_wall_down'],params['rho_wall']):
+                atom.x = i
+                atom.y = j
+                atom.z = k
+                wall.append(copy.copy(atom))
+                atom.idx += 1
+    return wall
+
+def creat_particle(params:Dict):
+    particles:List[Atom] = []
+    atom = Atom()
+    atom.idx = 0
+    atom.mass = 3.0
+    atom.molidx = 1
+    atom.type = 1
+    for i in np.arange(params['xlo_particle'],params['xhi_particle'],params['rho_particle']):
+        for j in np.arange(params['ylo_particle'],params['yhi_particle'],params['rho_particle']):
+            for k in np.arange(params['zlo_particle'],params['zhi_particle'],params['rho_particle']):
+                atom.x = i
+                atom.y = j
+                atom.z = k
+                particles.append(copy.copy(atom))
+                atom.idx += 1
+    return particles
 
 def init_io(io:MyIO):
     params = dict()
@@ -112,49 +157,6 @@ def process_params(params):
         z_center = z_center
     )
 
-def creat_wall(params:Dict):
-    wall:List[Atom] = []
-    atom = Atom()
-    atom.idx = 0
-    atom.mass = 1.0
-    atom.molidx = 1
-    atom.type = 1
-    for i in np.arange(params['xlo_wall_up'],params['xhi_wall_up'],params['rho_wall']):
-        for j in np.arange(params['ylo_wall_up'],params['yhi_wall_up'],params['rho_wall']):
-            for k in np.arange(params['zlo_wall_up'],params['zhi_wall_up'],params['rho_wall']):
-                atom.x = i
-                atom.y = j
-                atom.z = k
-                wall.append(copy.copy(atom))
-                atom.idx += 1
-    atom.molidx += 1
-    for i in np.arange(params['xlo_wall_down'],params['xhi_wall_down'],params['rho_wall']):
-        for j in np.arange(params['ylo_wall_down'],params['yhi_wall_down'],params['rho_wall']):
-            for k in np.arange(params['zlo_wall_down'],params['zhi_wall_down'],params['rho_wall']):
-                atom.x = i
-                atom.y = j
-                atom.z = k
-                wall.append(copy.copy(atom))
-                atom.idx += 1
-    return wall
-
-def creat_particle(params:Dict):
-    particles:List[Atom] = []
-    atom = Atom()
-    atom.idx = 0
-    atom.mass = 1.0
-    atom.molidx = 1
-    atom.type = 1
-    for i in np.arange(params['xlo_particle'],params['xhi_particle'],params['rho_particle']):
-        for j in np.arange(params['ylo_particle'],params['yhi_particle'],params['rho_particle']):
-            for k in np.arange(params['zlo_particle'],params['zhi_particle'],params['rho_particle']):
-                atom.x = i
-                atom.y = j
-                atom.z = k
-                particles.append(copy.copy(atom))
-                atom.idx += 1
-    return particles
-
 def main():
     # 初始化
     io = MyIO('capsule.data', 'init.data')
@@ -174,8 +176,8 @@ def main():
     system = System()
     system.update_box(box)
     system.update_molecule(cells)
-    system.update_atom(wall)
-    system.update_atom(particle)
+    #system.update_atom(wall)
+    #system.update_atom(particle)
 
     # 写入文件，并把system对象输出到文件中
     io.write_LAMMPS(system)

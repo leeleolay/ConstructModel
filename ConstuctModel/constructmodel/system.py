@@ -9,6 +9,8 @@ class System:
         self.nangles = 0
         self.ndihedrals = 0
 
+        self.nmolecules = 0
+
         self.atomtypes = 0
         self.bondtypes = 0
         self.angletypes = 0
@@ -35,6 +37,7 @@ class System:
             item:Atom = model[i]
             item.idx += self.natoms
             item.type += self.atomtypes
+            item.molidx += self.nmolecules
             self.atoms.append(item)
             self.natoms += 1
         self.masses.append(model[-1].mass)

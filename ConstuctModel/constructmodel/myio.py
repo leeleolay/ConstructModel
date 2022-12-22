@@ -74,7 +74,7 @@ class MyIO:
                     line = line.strip().split()
                     atom.idx = int(line[0])
                     atom.mass = 1.0
-                    atom.molidx = 1
+                    atom.molidx = int(line[1])
                     atom.type = int(line[2])
                     atom.x = float(line[3])
                     atom.y = float(line[4])
@@ -131,8 +131,8 @@ class MyIO:
             f.write("%f %f zlo zhi\n" % (system.box.zlo, system.box.zhi))
             f.write("\n")
             f.write("Masses\n\n")
-            for i in range(1, system.atomtypes):
-                f.write("%d %f\n" % (i, system.masses[i-1]))
+            for i in range(system.atomtypes):
+                f.write("%d %f\n" % (i+1, system.masses[i]))
             f.write("\n")
             f.write("Atoms\n\n")
             for i in range(system.natoms):
