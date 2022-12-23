@@ -110,9 +110,7 @@ class MyIO:
             system.bonds.extend(bonds)
             system.angles.extend(angles)
             system.dihedrals.extend(dihedrals)
-
-
-    
+  
     def write_LAMMPS(self, system:System):
         with open(self.output_file_name, 'w') as f:
             f.write("LAMMPS Description\n\n")
