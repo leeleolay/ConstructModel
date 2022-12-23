@@ -26,66 +26,82 @@ def create_mol(io:MyIO):
     cell = moleucle.creat_from_system(system_blank)
     return cell
 
-def create_mols(cell_origin:Molecule, params:Dict):
+def create_mols(input_model: Molecule, params: Dict) -> Molecule:
+    """
+    Create a new molecule model by copying and modifying the original model multiple times.
+
+    Parameters:
+    - input_model: the original molecule model to be copied and modified
+    - params: a dictionary containing the configuration parameters for the function
+
+    Returns:
+    - a new molecule model created by copying and modifying the original model
+    """
     num = params['num_cell_x'] * params['num_cell_y']
-    cells = Molecule()
-    idx_atom = 0
-    idx_bond = 0
-    idx_angle = 0
-    idx_dihedral = 0
+    output_model = Molecule()
 
     for i in range(num):
-        cell = copy.copy(cell_origin)
+        # Create a copy of the original model
+        cell = copy.deepcopy(input_model)
+
+        # Modify the xyz coordinates and indices of the atoms in the copied model
         dist_trans_x = params['x_center'][i]
         dist_trans_y = params['y_center'][i]
         dist_trans_z = params['z_center'][i]
 
-        for j in range(len(cell.atoms)):
-            cell.atoms[j].idx += idx_atom
-            cell.atoms[j].x += dist_trans_x
-            cell.atoms[j].y += dist_trans_y
-            cell.atoms[j].z += dist_trans_z
-            cell.atoms[j].molidx += i
-        idx_atom += len(cell.atoms)
+        for atom in cell.atoms:
+            atom.x += dist_trans_x
+            atom.y += dist_trans_y
+            atom.z += dist_trans_z
+            atom.molidx += i
+            atom.idx += len(cell.atoms)*i
 
-        for j in range(len(cell.bonds)):
-            cell.bonds[j].idx += idx_bond
-        idx_bond += len(cell.bonds)
+        # Modify the indices of the bonds, angles and dihedrals in the copied model
+        for bond in cell.bonds:
+            bond.idx += len(cell.bonds)*i
+            bond.atom1 += len(cell.atoms)*i
+            bond.atom2 += len(cell.atoms)*i 
 
-        for j in range(len(cell.angles)):
-            cell.angles[j].idx += idx_angle
-        idx_angle += len(cell.angles)
+        for angle in cell.angles:
+            angle.idx += len(cell.angles)*i
+            angle.atom1 += len(cell.atoms)*i
+            angle.atom2 += len(cell.atoms)*i
+            angle.atom3 += len(cell.atoms)*i
 
-        for j in range(len(cell.dihedrals)):
-            cell.dihedrals[j].idx += idx_dihedral
-        idx_dihedral += len(cell.dihedrals)
+        for dihedral in cell.dihedrals:
+            dihedral.idx += len(cell.dihedrals)*i
+            dihedral.atom1 += len(cell.atoms)*i
+            dihedral.atom2 += len(cell.atoms)*i
+            dihedral.atom3 += len(cell.atoms)*i
+            dihedral.atom4 += len(cell.atoms)*i
 
-        cells.atoms.extend(cell.atoms)
-        cells.bonds.extend(cell.bonds)
-        cells.angles.extend(cell.angles)
-        cells.dihedrals.extend(cell.dihedrals)
+        # Add the atoms, bonds, angles and dihedrals from the copied model to the final model
+        output_model.atoms.extend(cell.atoms)
+        output_model.bonds.extend(cell.bonds)
+        output_model.angles.extend(cell.angles)
+        output_model.dihedrals.extend(cell.dihedrals)
 
-    return cells
+    return output_model
 
-def creat_wall(params:Dict):
+def creat_wall(params:Dict) -> List[Atom]:
     wall:List[Atom] = []
     atom = Atom()
-    atom.idx = 0
+    atom.idx = 1
     atom.mass = 2.0
-    atom.molidx = 1
+    atom.molidx = 1001
     atom.type = 1
-    for i in np.arange(params['xlo_wall_up'],params['xhi_wall_up'],params['rho_wall']):
-        for j in np.arange(params['ylo_wall_up'],params['yhi_wall_up'],params['rho_wall']):
-            for k in np.arange(params['zlo_wall_up'],params['zhi_wall_up'],params['rho_wall']):
+    for i in np.arange(params['wall_up_xlo'],params['wall_up_xhi'],params['wall_rho']):
+        for j in np.arange(params['wall_up_ylo'],params['wall_up_yhi'],params['wall_rho']):
+            for k in np.arange(params['wall_up_zlo'],params['wall_up_zhi'],params['wall_rho']):
                 atom.x = i
                 atom.y = j
                 atom.z = k
                 wall.append(copy.copy(atom))
                 atom.idx += 1
     atom.molidx += 1
-    for i in np.arange(params['xlo_wall_down'],params['xhi_wall_down'],params['rho_wall']):
-        for j in np.arange(params['ylo_wall_down'],params['yhi_wall_down'],params['rho_wall']):
-            for k in np.arange(params['zlo_wall_down'],params['zhi_wall_down'],params['rho_wall']):
+    for i in np.arange(params['wall_down_xlo'],params['wall_down_xhi'],params['wall_rho']):
+        for j in np.arange(params['wall_down_ylo'],params['wall_down_yhi'],params['wall_rho']):
+            for k in np.arange(params['wall_down_zlo'],params['wall_down_zhi'],params['wall_rho']):
                 atom.x = i
                 atom.y = j
                 atom.z = k
@@ -96,13 +112,13 @@ def creat_wall(params:Dict):
 def creat_particle(params:Dict):
     particles:List[Atom] = []
     atom = Atom()
-    atom.idx = 0
+    atom.idx = 1
     atom.mass = 3.0
-    atom.molidx = 1
+    atom.molidx = 1001
     atom.type = 1
-    for i in np.arange(params['xlo_particle'],params['xhi_particle'],params['rho_particle']):
-        for j in np.arange(params['ylo_particle'],params['yhi_particle'],params['rho_particle']):
-            for k in np.arange(params['zlo_particle'],params['zhi_particle'],params['rho_particle']):
+    for i in np.arange(params['particle_xlo'],params['particle_xhi'],params['particle_rho']):
+        for j in np.arange(params['particle_ylo'],params['particle_yhi'],params['particle_rho']):
+            for k in np.arange(params['particle_zlo'],params['particle_zhi'],params['particle_rho']):
                 atom.x = i
                 atom.y = j
                 atom.z = k
@@ -122,27 +138,27 @@ def init_io(io:MyIO):
 
 def process_params(params):
     # 处理wall参数
-    xlo_wall_up = xlo_wall_down = params['box']['xlo']
-    xhi_wall_up = xhi_wall_down = params['box']['xhi']
-    ylo_wall_up = ylo_wall_down = params['box']['ylo']
-    yhi_wall_up = yhi_wall_down = params['box']['yhi']
-    zlo_wall_up = params['box']['zlo']-params['wall']['dist_from_box']-params['wall']['rho_wall']
-    zhi_wall_up = params['box']['zhi']-params['wall']['dist_from_box']
-    zlo_wall_down = params['box']['zlo']+params['wall']['dist_from_box']
-    zhi_wall_down = params['box']['zhi']+params['wall']['dist_from_box']+params['wall']['rho_wall']
+    wall_up_xlo, wall_down_xlo = [params['box']['xlo']] * 2
+    wall_up_xhi, wall_down_xhi = [params['box']['xhi']] * 2
+    wall_up_ylo, wall_down_ylo = [params['box']['ylo']] * 2
+    wall_up_yhi, wall_down_yhi = [params['box']['yhi']] * 2
+    wall_up_zlo = params['box']['zhi']-params['wall']['dist_from_box']-params['wall']['wall_rho']
+    wall_up_zhi = params['box']['zhi']-params['wall']['dist_from_box']
+    wall_down_zlo = params['box']['zlo']+params['wall']['dist_from_box']
+    wall_down_zhi = params['box']['zlo']+params['wall']['dist_from_box']+params['wall']['wall_rho']
     params['wall'].update(
-        xlo_wall_up = xlo_wall_up,
-        xlo_wall_down = xlo_wall_down,
-        xhi_wall_up = xhi_wall_down,
-        xhi_wall_down = xhi_wall_down,
-        ylo_wall_up = ylo_wall_up,
-        ylo_wall_down = ylo_wall_down,
-        yhi_wall_up = yhi_wall_up,
-        yhi_wall_down = yhi_wall_down,
-        zlo_wall_up = zlo_wall_up,
-        zlo_wall_down = zlo_wall_down,
-        zhi_wall_up = zhi_wall_up,
-        zhi_wall_down = zhi_wall_down
+        wall_up_xlo = wall_up_xlo,
+        wall_down_xlo = wall_down_xlo,
+        wall_up_xhi = wall_down_xhi,
+        wall_down_xhi = wall_down_xhi,
+        wall_up_ylo = wall_up_ylo,
+        wall_down_ylo = wall_down_ylo,
+        wall_up_yhi = wall_up_yhi,
+        wall_down_yhi = wall_down_yhi,
+        wall_up_zlo = wall_up_zlo,
+        wall_down_zlo = wall_down_zlo,
+        wall_up_zhi = wall_up_zhi,
+        wall_down_zhi = wall_down_zhi
     )
     # 处理cell参数
     gap_cells = params['box']['xhi']-params['box']['xlo']-params['cell']['length_x']
@@ -176,8 +192,8 @@ def main():
     system = System()
     system.update_box(box)
     system.update_molecule(cells)
-    #system.update_atom(wall)
-    #system.update_atom(particle)
+    system.update_atoms(wall)
+    system.update_atoms(particle)
 
     # 写入文件，并把system对象输出到文件中
     io.write_LAMMPS(system)

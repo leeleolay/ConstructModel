@@ -15,16 +15,16 @@
         "length_z":70.0
         },
     "particle":{
-        "xlo_particle":-25.0,
-        "xhi_particle":25.0,
-        "ylo_particle":-12.5,
-        "yhi_particle":12.5,
-        "zlo_particle":130.0,
-        "zhi_particle":138.0,
-        "rho_particle":3.0
+        "particle_xlo":-25.0,
+        "particle_xhi":25.0,
+        "particle_ylo":-12.5,
+        "particle_yhi":12.5,
+        "particle_zlo":130.0,
+        "particle_zhi":138.0,
+        "particle_rho":3.0
         },
     "wall":{
-        "dist_from_box":10.0,
-        "rho_wall":5
+        "dist_from_box":5.0,
+        "wall_rho":3
         }
     }

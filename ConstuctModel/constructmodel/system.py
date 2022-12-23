@@ -1,8 +1,11 @@
+import copy
+
 from box import Box
 from data import *
 
 class System:
     def __init__(self):
+
         self.box = Box()
         self.natoms = 0
         self.nbonds = 0
@@ -24,51 +27,86 @@ class System:
         self.dihedrals: List[Dihedral] = []  
     
     def update_box(self, box:Box):
+
         self.box = box
     
     def update_molecule(self, molecule:Molecule):
-        self.update_atom(molecule.atoms)
-        self.update_bond(molecule.bonds)
-        self.update_angle(molecule.angles)
-        self.update_dihedral(molecule.dihedrals)
+        self.update_atoms(molecule.atoms)
+        self.update_bonds(molecule.bonds)
+        self.update_angles(molecule.angles)
+        self.update_dihedrals(molecule.dihedrals)
 
-    def update_atom(self, model:List[Atom]):
-        for i in range(len(model)):
-            item:Atom = model[i]
-            item.idx += self.natoms
-            item.type += self.atomtypes
-            item.molidx += self.nmolecules
-            self.atoms.append(item)
+    def update_atoms(self, model: List[Atom]) -> None:
+        """
+        Update the atoms in the system with the given atoms.
+
+        Parameters:
+        - model: a list of atoms to be added to the system
+
+        Returns:
+        - None
+        """
+        atom_index = copy.deepcopy(self.natoms)
+        atom_styles = copy.deepcopy(self.atomtypes)
+        atom_molidx = copy.deepcopy(self.nmolecules)
+
+        for atom in copy.deepcopy(model):
+            # Update the indices and types of the atoms
+            
+            atom.idx += atom_index
+            atom.type += atom_styles
+            atom.molidx += atom_molidx
+
+            # Add the atom to the system
+            self.atoms.append(atom)
             self.natoms += 1
+
+        # Update the masses and atom types in the system
         self.masses.append(model[-1].mass)
         self.atomtypes += 1
+        self.nmolecules += 1
     
-    def update_bond(self, model:List[Bond]):
-        for i in range(len(model)):
-            item:Bond = model[i]
-            item.idx += self.nbonds
-            item.type += self.bondtypes
-            self.bonds.append(item)
+    def update_bonds(self, model:List[Bond]):
+
+        bond_index = copy.deepcopy(self.nbonds)
+        bond_styles = copy.deepcopy(self.bondtypes)
+
+        for bond in copy.deepcopy(model):
+
+            bond.idx += bond_index
+            bond.type += bond_styles
+
+            self.bonds.append(bond)
             self.nbonds += 1
+
         self.bondtypes += 1
 
-    def update_angle(self, model:List[Angle]):
-        for i in range(len(model)):
-            item:Angle = model[i]
-            item.idx += self.nangles
-            item.type += self.angletypes
-            self.angles.append(item) 
+    def update_angles(self, model:List[Angle]):
+
+        angle_index = copy.deepcopy(self.nangles)
+        angle_styles = copy.deepcopy(self.angletypes)
+
+        for angle in copy.deepcopy(model):
+
+            angle.idx += angle_index
+            angle.type += angle_styles
+
+            self.angles.append(angle) 
             self.nangles += 1
+        
         self.angletypes += 1
 
-    def update_dihedral(self, model:List[Dihedral]):
-        for i in range(len(model)):
-            item:Dihedral = model[i]
-            item.idx += self.ndihedrals
-            item.type += self.dihedraltypes
-            self.dihedrals.append(item)
-            self.ndihedrals += 1
-        self.dihedraltypes += 1
+    def update_dihedrals(self, model:List[Dihedral]):
 
-    def update_box(self, box:Box):
-        self.box = box
+        dihedral_index = copy.deepcopy(self.ndihedrals)
+        dihedral_styles = copy.deepcopy(self.dihedraltypes)
+
+        for dihedral in copy.deepcopy(model):
+
+            dihedral.idx += dihedral_index
+            dihedral.type += dihedral_styles
+
+            self.dihedrals.append(dihedral)
+            self.ndihedrals += 1
+
+        self.dihedraltypes += 1
