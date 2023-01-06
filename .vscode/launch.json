@@ -10,7 +10,7 @@
             "type": "python",
             "request": "launch",
             "program": "/Users/liuxuwei01/Desktop/IPE/ConstructModel/ConstuctModel/constructmodel/main.py",
-            "args": ["-i","/Users/liuxuwei01/Desktop/IPE/ConstructModel/ConstuctModel/capsule.data","-j","/Users/liuxuwei01/Desktop/IPE/ConstructModel/ConstuctModel/constructmodel/setting.json","-o","/Users/liuxuwei01/Desktop/IPE/ConstructModel/ConstuctModel/constructmodel/test.data"],
+            "args": ["-i","/Users/liuxuwei01/Desktop/IPE/ConstructModel/ConstuctModel/capsule.data","-j","/Users/liuxuwei01/Desktop/IPE/ConstructModel/ConstuctModel/constructmodel/setting.json","-o","/Users/liuxuwei01/Desktop/IPE/ConstructModel/ConstuctModel/constructmodel/test_moreparticle.data"],
             "console": "integratedTerminal",
             "justMyCode": true
         }

@@ -126,6 +126,21 @@ def creat_particle(params:Dict):
                 atom.idx += 1
     return particles
 
+def creat_particle_single(params:Dict):
+    particles:List[Atom] = []
+    atom = Atom()
+    atom.idx = 1
+    atom.mass = 3.0
+    atom.molidx = 1001
+    atom.type = 1
+    for i in range(len(params['x'])):
+        atom.x = params['x'][i]
+        atom.y = params['y'][i]
+        atom.z = params['z'][i]
+        particles.append(copy.copy(atom))
+        atom.idx += 1
+    return particles
+
 def init_io(io:MyIO):
     params = dict()
     args = MyIO.parse_args()
@@ -161,10 +176,11 @@ def process_params(params):
         wall_down_zhi = wall_down_zhi
     )
     # 处理cell参数
-    gap_cells = params['box']['xhi']-params['box']['xlo']-params['cell']['length_x']
+    gap_cells = params['box']['xhi']-params['box']['xlo']-params['cell']['length_x']*2
+    gap_cells = gap_cells/2
     x_center = []
-    x_center.append(0 - gap_cells/2)
-    x_center.append(0 + gap_cells/2)
+    x_center.append(0 - gap_cells/2 - params['cell']['length_x']/2) 
+    x_center.append(0 + gap_cells/2 + params['cell']['length_x']/2)
     y_center = [0.0, 0.0]
     z_center = [0.0, 0.0]
     params['cell'].update(
@@ -184,16 +200,18 @@ def main():
     cell = create_mol(io)
     cells = create_mols(cell, params['cell'])
     # 构造wall
-    wall = creat_wall(params['wall'])
+    #wall = creat_wall(params['wall'])
     # 构造dpd粒子
-    particle = creat_particle(params['particle'])
+    #particle = creat_particle(params['particle'])
+    particle_single = creat_particle_single(params['particle_single'])
 
     # 构建系统
     system = System()
     system.update_box(box)
     system.update_molecule(cells)
-    system.update_atoms(wall)
-    system.update_atoms(particle)
+    #system.update_atoms(wall)
+    #system.update_atoms(particle)
+    system.update_atoms(particle_single)
 
     # 写入文件，并把system对象输出到文件中
     io.write_LAMMPS(system)
