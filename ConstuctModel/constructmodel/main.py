@@ -152,6 +152,20 @@ def init_io(io:MyIO):
 
 
 def process_params(params):
+    # 处理box参数
+    box_length_x = params['cell']['num_cell_x'] * (params['cell']['gap_of_cells']+params['cell']['length_x'])
+    box_length_y = params['cell']['num_cell_y'] * (params['cell']['gap_of_cells']+params['cell']['length_y'])
+    box_xlo = -box_length_x/2
+    box_xhi = box_length_x/2
+    box_ylo = -box_length_y/2
+    box_yhi = box_length_y/2  
+    params['box'].update(
+        xlo = box_xlo,
+        xhi = box_xhi,
+        ylo = box_ylo,
+        yhi = box_yhi
+    )
+
     # 处理wall参数
     wall_up_xlo, wall_down_xlo = [params['box']['xlo']] * 2
     wall_up_xhi, wall_down_xhi = [params['box']['xhi']] * 2
@@ -175,18 +189,29 @@ def process_params(params):
         wall_up_zhi = wall_up_zhi,
         wall_down_zhi = wall_down_zhi
     )
+
     # 处理cell参数
-    gap_cells = params['box']['xhi']-params['box']['xlo']-params['cell']['length_x']*2
-    gap_cells = gap_cells/2
     x_center = []
-    x_center.append(0 - gap_cells/2 - params['cell']['length_x']/2) 
-    x_center.append(0 + gap_cells/2 + params['cell']['length_x']/2)
-    y_center = [0.0, 0.0]
-    z_center = [0.0, 0.0]
+    y_center = []
+    z_center = []
+    for i in range(params['cell']['num_cell_x']):
+        for j in range(params['cell']['num_cell_y']): 
+            for k in range(params['cell']['num_cell_z']):
+                x_center.append(params['box']['xlo'] + (params['cell']['gap_of_cells']+params['cell']['length_x']) * (0.5 + i) )
+                y_center.append(params['box']['ylo'] + (params['cell']['gap_of_cells']+params['cell']['length_y']) * (0.5 + j) )
+                z_center.append(0.0)
     params['cell'].update(
         x_center = x_center,
         y_center = y_center,
         z_center = z_center
+    )
+
+    # 处理particle参数
+    params['particle'].update(
+        particle_xlo = params['box']['xlo'],
+        particle_xhi = params['box']['xhi'],
+        particle_ylo = params['box']['ylo'],
+        particle_yhi = params['box']['yhi'],
     )
 
 def main():
@@ -202,16 +227,16 @@ def main():
     # 构造wall
     #wall = creat_wall(params['wall'])
     # 构造dpd粒子
-    #particle = creat_particle(params['particle'])
-    particle_single = creat_particle_single(params['particle_single'])
+    particle = creat_particle(params['particle'])
+    #particle_single = creat_particle_single(params['particle_single'])
 
     # 构建系统
     system = System()
     system.update_box(box)
     system.update_molecule(cells)
     #system.update_atoms(wall)
-    #system.update_atoms(particle)
-    system.update_atoms(particle_single)
+    system.update_atoms(particle)
+    #system.update_atoms(particle_single)
 
     # 写入文件，并把system对象输出到文件中
     io.write_LAMMPS(system)

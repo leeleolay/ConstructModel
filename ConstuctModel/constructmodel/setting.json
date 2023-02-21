@@ -2,14 +2,16 @@
     "box":{
         "xlo":-21.0,
         "xhi":21.0,
-        "ylo":-10.5,
-        "yhi":10.5,
+        "ylo":-21.0,
+        "yhi":21.0,
         "zlo":-40.0,
         "zhi":40.0
         },
     "cell":{
-        "num_cell_x":2,
-        "num_cell_y":1,
+        "num_cell_x":5,
+        "num_cell_y":5,
+        "num_cell_z":1,
+        "gap_of_cells":1,
         "length_x":20.0,
         "length_y":20.0,
         "length_z":70.0
@@ -19,8 +21,8 @@
         "particle_xhi":25.0,
         "particle_ylo":-12.5,
         "particle_yhi":12.5,
-        "particle_zlo":130.0,
-        "particle_zhi":138.0,
+        "particle_zlo":39.0,
+        "particle_zhi":40.0,
         "particle_rho":3.0
         },
     "wall":{
