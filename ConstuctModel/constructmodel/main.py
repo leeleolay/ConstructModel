@@ -90,18 +90,18 @@ def creat_wall(params:Dict) -> List[Atom]:
     atom.mass = 2.0
     atom.molidx = 1001
     atom.type = 1
-    for i in np.arange(params['wall_up_xlo'],params['wall_up_xhi'],params['wall_rho']):
-        for j in np.arange(params['wall_up_ylo'],params['wall_up_yhi'],params['wall_rho']):
-            for k in np.arange(params['wall_up_zlo'],params['wall_up_zhi'],params['wall_rho']):
+    for i in np.arange(params['wallup_xlo'],params['wallup_xhi'],params['wall_rho']):
+        for j in np.arange(params['wallup_ylo'],params['wallup_yhi'],params['wall_rho']):
+            for k in np.arange(params['wallup_zlo'],params['wallup_zhi'],params['wall_rho']):
                 atom.x = i
                 atom.y = j
                 atom.z = k
                 wall.append(copy.copy(atom))
                 atom.idx += 1
     atom.molidx += 1
-    for i in np.arange(params['wall_down_xlo'],params['wall_down_xhi'],params['wall_rho']):
-        for j in np.arange(params['wall_down_ylo'],params['wall_down_yhi'],params['wall_rho']):
-            for k in np.arange(params['wall_down_zlo'],params['wall_down_zhi'],params['wall_rho']):
+    for i in np.arange(params['walldown_xlo'],params['walldown_xhi'],params['wall_rho']):
+        for j in np.arange(params['walldown_ylo'],params['walldown_yhi'],params['wall_rho']):
+            for k in np.arange(params['walldown_zlo'],params['walldown_zhi'],params['wall_rho']):
                 atom.x = i
                 atom.y = j
                 atom.z = k
@@ -167,27 +167,34 @@ def process_params(params):
     )
 
     # 处理wall参数
-    wall_up_xlo, wall_down_xlo = [params['box']['xlo']] * 2
-    wall_up_xhi, wall_down_xhi = [params['box']['xhi']] * 2
-    wall_up_ylo, wall_down_ylo = [params['box']['ylo']] * 2
-    wall_up_yhi, wall_down_yhi = [params['box']['yhi']] * 2
-    wall_up_zlo = params['box']['zhi']-params['wall']['dist_from_box']-params['wall']['wall_rho']
-    wall_up_zhi = params['box']['zhi']-params['wall']['dist_from_box']
-    wall_down_zlo = params['box']['zlo']+params['wall']['dist_from_box']
-    wall_down_zhi = params['box']['zlo']+params['wall']['dist_from_box']+params['wall']['wall_rho']
+    wallup_xlo = params['box']['xlo']
+    wallup_xhi = params['box']['xhi']
+    wallup_ylo = params['box']['ylo']
+    wallup_yhi = params['box']['yhi']
+    wallup_zlo = params['box']['zhi']-params['wall']['dist_from_box_edge']
+    wallup_zhi = params['box']['zhi']-params['wall']['dist_from_box_edge']+0.1
+
+    walldown_xlo = params['box']['xlo']
+    walldown_xhi = params['box']['xhi']
+    walldown_ylo = params['box']['ylo']
+    walldown_yhi = params['box']['yhi']
+    walldown_zlo = params['box']['zlo']+params['wall']['dist_from_box_edge']-0.1
+    walldown_zhi = params['box']['zlo']+params['wall']['dist_from_box_edge']
+
     params['wall'].update(
-        wall_up_xlo = wall_up_xlo,
-        wall_down_xlo = wall_down_xlo,
-        wall_up_xhi = wall_down_xhi,
-        wall_down_xhi = wall_down_xhi,
-        wall_up_ylo = wall_up_ylo,
-        wall_down_ylo = wall_down_ylo,
-        wall_up_yhi = wall_up_yhi,
-        wall_down_yhi = wall_down_yhi,
-        wall_up_zlo = wall_up_zlo,
-        wall_down_zlo = wall_down_zlo,
-        wall_up_zhi = wall_up_zhi,
-        wall_down_zhi = wall_down_zhi
+        wallup_xlo = wallup_xlo,
+        wallup_xhi = wallup_xhi,
+        wallup_ylo = wallup_ylo,
+        wallup_yhi = wallup_yhi,
+        wallup_zlo = wallup_zlo,
+        wallup_zhi = wallup_zhi,
+
+        walldown_xlo = walldown_xlo,        
+        walldown_xhi = walldown_xhi,        
+        walldown_ylo = walldown_ylo,        
+        walldown_yhi = walldown_yhi,        
+        walldown_zlo = walldown_zlo,       
+        walldown_zhi = walldown_zhi
     )
 
     # 处理cell参数
@@ -225,7 +232,7 @@ def main():
     cell = create_mol(io)
     cells = create_mols(cell, params['cell'])
     # 构造wall
-    #wall = creat_wall(params['wall'])
+    wall = creat_wall(params['wall'])
     # 构造dpd粒子
     particle = creat_particle(params['particle'])
     #particle_single = creat_particle_single(params['particle_single'])
@@ -234,9 +241,9 @@ def main():
     system = System()
     system.update_box(box)
     system.update_molecule(cells)
-    #system.update_atoms(wall)
     system.update_atoms(particle)
     #system.update_atoms(particle_single)
+    system.update_atoms(wall)
 
     # 写入文件，并把system对象输出到文件中
     io.write_LAMMPS(system)

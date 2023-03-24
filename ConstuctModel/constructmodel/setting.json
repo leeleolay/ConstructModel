@@ -4,12 +4,12 @@
         "xhi":21.0,
         "ylo":-21.0,
         "yhi":21.0,
-        "zlo":-40.0,
-        "zhi":40.0
+        "zlo":-45.0,
+        "zhi":45.0
         },
     "cell":{
-        "num_cell_x":5,
-        "num_cell_y":5,
+        "num_cell_x":4,
+        "num_cell_y":4,
         "num_cell_z":1,
         "gap_of_cells":1,
         "length_x":20.0,
@@ -21,13 +21,13 @@
         "particle_xhi":25.0,
         "particle_ylo":-12.5,
         "particle_yhi":12.5,
-        "particle_zlo":39.0,
-        "particle_zhi":40.0,
-        "particle_rho":3.0
+        "particle_zlo":43.0,
+        "particle_zhi":44.0,
+        "particle_rho":5.0
         },
     "wall":{
-        "dist_from_box":5.0,
-        "wall_rho":3
+        "dist_from_box_edge":1.0,
+        "wall_rho":2.0
         },
     "particle_single":{
         "x":[0.0,0.0,0.0],
