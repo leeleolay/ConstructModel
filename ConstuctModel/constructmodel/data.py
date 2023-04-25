@@ -1,8 +1,7 @@
 from typing import List
-import importlib
 
 class Atom:
-    def __init__(self, idx:int = 0, type:int = 0, x:float = 0.0, y:float = 0.0, z:float = 0.0, mass:float = 0.0, molidx:int = 0):
+    def __init__(self, idx:int = 0, type:int = 0, x:float = 0.0, y:float = 0.0, z:float = 0.0, mass:float = 0.0, molidx:int = 0, vx:float = 0.0, vy:float = 0.0, vz:float = 0.0):
         self.idx:int = idx
         self.type:int = type
         self.x:float = x
@@ -10,6 +9,9 @@ class Atom:
         self.z:float = z
         self.mass:float = mass
         self.molidx:int = 1000 + molidx
+        self.vx:float = vx
+        self.vy:float = vy
+        self.vz:float = vz
 
 class Bond:
     def __init__(self, idx:int = 0, type:int = 0, atom1:int = 0, atom2:int = 0, length:float = 0):

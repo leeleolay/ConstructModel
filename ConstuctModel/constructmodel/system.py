@@ -30,41 +30,31 @@ class System:
 
         self.box = box
     
-    def update_molecule(self, molecule:Molecule):
+    def update_molecules(self, molecule:Molecule):
         self.update_atoms(molecule.atoms)
         self.update_bonds(molecule.bonds)
         self.update_angles(molecule.angles)
         self.update_dihedrals(molecule.dihedrals)
 
     def update_atoms(self, model: List[Atom]) -> None:
-        """
-        Update the atoms in the system with the given atoms.
-
-        Parameters:
-        - model: a list of atoms to be added to the system
-
-        Returns:
-        - None
-        """
         atom_index = copy.deepcopy(self.natoms)
         atom_styles = copy.deepcopy(self.atomtypes)
         atom_molidx = copy.deepcopy(self.nmolecules)
 
+        nummol = set()
+
         for atom in copy.deepcopy(model):
-            # Update the indices and types of the atoms
-            
             atom.idx += atom_index
             atom.type += atom_styles
             atom.molidx += atom_molidx
 
-            # Add the atom to the system
             self.atoms.append(atom)
             self.natoms += 1
+            nummol.add(atom.molidx)
 
-        # Update the masses and atom types in the system
         self.masses.append(model[-1].mass)
         self.atomtypes += 1
-        self.nmolecules += 1
+        self.nmolecules += len(nummol)
     
     def update_bonds(self, model:List[Bond]):
 

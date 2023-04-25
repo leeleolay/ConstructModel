@@ -1,7 +1,5 @@
-import sys
-import scipy.spatial as ss
 import numpy as np
-from typing import Dict
+from typing import Dict, List
 import copy
 
 from system import System
@@ -27,16 +25,6 @@ def create_mol(io:MyIO):
     return cell
 
 def create_mols(input_model: Molecule, params: Dict) -> Molecule:
-    """
-    Create a new molecule model by copying and modifying the original model multiple times.
-
-    Parameters:
-    - input_model: the original molecule model to be copied and modified
-    - params: a dictionary containing the configuration parameters for the function
-
-    Returns:
-    - a new molecule model created by copying and modifying the original model
-    """
     num = params['num_cell_x'] * params['num_cell_y']
     output_model = Molecule()
 
@@ -83,7 +71,7 @@ def create_mols(input_model: Molecule, params: Dict) -> Molecule:
 
     return output_model
 
-def creat_wall(params:Dict) -> List[Atom]:
+def creat_walls(params:Dict) -> List[Atom]:
     wall:List[Atom] = []
     atom = Atom()
     atom.idx = 1
@@ -109,7 +97,7 @@ def creat_wall(params:Dict) -> List[Atom]:
                 atom.idx += 1
     return wall
 
-def creat_particle(params:Dict):
+def creat_particles(params:Dict):
     particles:List[Atom] = []
     atom = Atom()
     atom.idx = 1
@@ -141,6 +129,82 @@ def creat_particle_single(params:Dict):
         atom.idx += 1
     return particles
 
+def generate_initial_configuration(num_particles, region, target_average_speed, target_average_direction, seed=None):
+    if seed is not None:
+        np.random.seed(seed)
+
+    x_range = region[1] - region[0]
+    y_range = region[3] - region[2]
+    z_range = region[5] - region[4]
+
+    positions = np.random.rand(num_particles, 3) * [x_range, y_range, z_range] + [region[0], region[2], region[4]]
+    initial_velocities = np.random.normal(0, 1, (num_particles, 3))
+    average_velocity = np.mean(initial_velocities, axis=0)
+    
+    initial_velocities -= average_velocity  # 让所有粒子的平均速度为0
+    normalized_target_direction = target_average_direction / np.linalg.norm(target_average_direction)
+    target_average_velocity = target_average_speed * normalized_target_direction
+    initial_velocities += target_average_velocity  # 将所有粒子的平均速度设置为指定的值
+
+    return positions, initial_velocities
+
+def creat_particle_random(params: Dict):
+    particles: List[Atom] = []
+    
+    num_particles = int(((params['particle_xhi'] - params['particle_xlo']) / params['particle_rho']) *
+                        ((params['particle_yhi'] - params['particle_ylo']) / params['particle_rho']) *
+                        ((params['particle_zhi'] - params['particle_zlo']) / params['particle_rho']))
+    
+    region = np.array([params['particle_xlo'], params['particle_xhi'],
+                       params['particle_ylo'], params['particle_yhi'],
+                       params['particle_zlo'], params['particle_zhi']])
+    
+    positions, velocities = generate_initial_configuration(num_particles, region, params['target_average_speed'], params['target_average_direction'], params['seed'])
+
+    for i, (position, velocity) in enumerate(zip(positions, velocities)):
+        atom = Atom()
+        atom.idx = i + 1
+        atom.mass = 3.0
+        atom.molidx = 1001
+        atom.type = 1
+        atom.x, atom.y, atom.z = position
+        atom.vx, atom.vy, atom.vz = velocity
+        particles.append(atom)
+
+    return particles
+
+def create_bonds_between_cell_and_wall(params:Dict, system:System):
+    cell_top_ids = params['cell_tom']
+    cell_bottom_ids = params['cell_bottom']
+    cell_ids = cell_top_ids + cell_bottom_ids
+    cell_atoms = [atom for atom in system.atoms if atom.idx in cell_ids]
+    wall_atoms = [atom for atom in system.atoms if atom.type == 2]
+
+    bonds_to_add:List[Bond] = []
+
+    for cell_atom in cell_atoms:
+        min_distance = float('inf')
+        closest_wall_atom = None
+
+        for wall_atom in wall_atoms:
+            distance = ((cell_atom.x - wall_atom.x) ** 2 + 
+                        (cell_atom.y - wall_atom.y) ** 2 + 
+                        (cell_atom.z - wall_atom.z) ** 2) ** 0.5
+
+            if distance < min_distance:
+                min_distance = distance
+                closest_wall_atom = wall_atom
+
+        bond = Bond()
+        bond.idx = len(system.bonds) + 1
+        bond.type = 1
+        bond.atom1 = cell_atom.idx
+        bond.atom2 = closest_wall_atom.idx
+        bond.length = min_distance
+        bonds_to_add.append(bond)
+    
+    system.update_bonds(bonds_to_add)
+
 def init_io(io:MyIO):
     params = dict()
     args = MyIO.parse_args()
@@ -149,7 +213,6 @@ def init_io(io:MyIO):
     io.input_file_name = args.input
     io.output_file_name = args.output
     return params
-
 
 def process_params(params):
     # 处理box参数
@@ -220,33 +283,25 @@ def process_params(params):
         particle_ylo = params['box']['ylo'],
         particle_yhi = params['box']['yhi'],
     )
+    params['particle']['target_average_direction'] = np.array(params['particle']['target_average_direction'])
 
-def main():
+if __name__ == "__main__":
     # 初始化
-    io = MyIO('capsule.data', 'init.data')
+    io = MyIO()
     params = init_io(io)
 
-    # 构造box
-    box = create_box(params['box'])
-    # 构造cell模型
-    cell = create_mol(io)
-    cells = create_mols(cell, params['cell'])
-    # 构造wall
-    wall = creat_wall(params['wall'])
-    # 构造dpd粒子
-    particle = creat_particle(params['particle'])
-    #particle_single = creat_particle_single(params['particle_single'])
-
-    # 构建系统
+    # 构建系统模型
     system = System()
-    system.update_box(box)
-    system.update_molecule(cells)
-    system.update_atoms(particle)
-    #system.update_atoms(particle_single)
-    system.update_atoms(wall)
+    system.update_box(create_box(params['box']))
+    system.update_molecules(create_mols(create_mol(io), params['cell']))
+    system.update_atoms(creat_walls(params['wall']))
+    if params['particle']['type'] == 'single':
+        system.update_atoms(creat_particle_single(params['particle']))
+    elif params['particle']['type'] == 'random':
+        system.update_atoms(creat_particle_random(params['particle']))
+    else:
+        system.update_atoms(creat_particles(params['particle']))
+    create_bonds_between_cell_and_wall(params['fixed_particle_space'], system)
 
     # 写入文件，并把system对象输出到文件中
     io.write_LAMMPS(system)
-
-if __name__ == "__main__":
-    main()

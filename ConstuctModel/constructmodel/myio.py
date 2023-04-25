@@ -5,11 +5,10 @@ from typing import List
 import copy
 
 from system import System
-from box import Box
 from data import *
 
 class MyIO:
-    def __init__(self, input_file_name:str, output_file_name:str):
+    def __init__(self, input_file_name:str = None, output_file_name:str = None):
         self.input_file_name = input_file_name
         self.output_file_name = output_file_name
 
@@ -147,6 +146,10 @@ class MyIO:
             f.write("Dihedrals\n\n")
             for i in range(system.ndihedrals):
                 f.write("%d %d %d %d %d %d\n" % (system.dihedrals[i].idx, system.dihedrals[i].type, system.dihedrals[i].atom1, system.dihedrals[i].atom2, system.dihedrals[i].atom3, system.dihedrals[i].atom4))
+            f.write("\n")
+            f.write("Velocities\n\n")
+            for i in range(system.natoms):
+                f.write("%d %f %f %f\n" % (system.atoms[i].idx, system.atoms[i].vx, system.atoms[i].vy, system.atoms[i].vz))
             f.write("\n")
 
     def load_json(json_file):

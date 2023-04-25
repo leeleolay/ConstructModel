@@ -1,4 +1,3 @@
-
 class Box:
     def __init__(self, xlo=0, xhi=0, ylo=0, yhi=0, zlo=0, zhi=0):
         self.xlo = xlo
