@@ -5,13 +5,30 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: 当前文件",
+            "name": "Python: time",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": "/ncsfs02/lxw/PostProcess/run.lammpstrj 2 0 11300 --num_processes 14",
+            "args": [
+                    "--file_name", "/ncsfs02/lxw/posttools/test.run.lammpstrj",
+                    "--atom_type", "2",
+                    "--min_timestep", "0",
+                    "--max_timestep", "1000",
+                    "--particle_ids", "83373", "83374", "83375",
+                    "--start_region", "-42", "-42", "57.9", "42", "42", "58.1",
+                    "--end_region", "-42", "-42", "57.3", "42", "42", "57.4"
+            ]
+        },
+        {
+            "name": "Python: msd",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": "/ncsfs02/lxw/posttools/run.lammpstrj 2 0 11300 --num_processes 14",
         }
     ]
 }
