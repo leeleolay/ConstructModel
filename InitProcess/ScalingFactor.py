@@ -20,12 +20,12 @@ def compute_scaling_factors(D0_M, D0_P, Y_M, Y_P, eta0_M, eta0_P):
     return lambda_, xi, epsilon, nu, tau, mu
 
 # 测试计算的函数
-D0_P = 7.82E-6  # Meters
+D0_P = 20E-6  # Meters
 Y_P = 18.9E-6   # Newton/Meter = Joules/(Meter^2) for 2-Dimensions
 eta0_P = 0.022  # Pascal*Second
 
-D0_M =  8.25 # lambda
-Y_M = 400   # epsilon/lambda=xi/(lambda^2)  for 2-Dimensions
+D0_M =  20 # lambda
+Y_M = 392.453   # epsilon/lambda=xi/(lambda^2)  for 2-Dimensions
 eta0_M = 168.87  # nu*tau
 
 # 使用函数进行计算

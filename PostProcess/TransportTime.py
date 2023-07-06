@@ -90,17 +90,24 @@ def main():
 
     # Process the calculated times
     times = []
-    for particle_id, time in particle_times.items():
-        if time is None:
-            print(f"Particle {particle_id} did not move from the start region to the end region.")
-        else:
-            print(f"Particle {particle_id} moved from the start region to the end region in {time} timesteps.")
-            times.append(time)
+    with open("transport_results.txt", "w") as f:
+        for particle_id, time in particle_times.items():
+            if time is None:
+                print(f"Particle {particle_id} did not move from the start region to the end region.")
+                f.write(f"Particle {particle_id} did not move from the start region to the end region.\n")
+            else:
+                print(f"Particle {particle_id} moved from the start region to the end region in {time} timesteps.")
+                f.write(f"Particle {particle_id} moved from the start region to the end region in {time} timesteps.\n")
+                times.append(time)
 
-    if times:
-        print(f"Max time: {np.max(times)} timesteps.")
-        print(f"Min time: {np.min(times)} timesteps.")
-        print(f"Avg time: {np.mean(times)} timesteps.")
+        if times:
+            max_time = np.max(times)
+            min_time = np.min(times)
+            avg_time = np.mean(times)
+
+            f.write(f"\nMax time: {max_time} timesteps.\n")
+            f.write(f"Min time: {min_time} timesteps.\n")
+            f.write(f"Avg time: {avg_time} timesteps.\n")
 
 if __name__ == "__main__":
     main()
