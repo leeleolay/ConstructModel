@@ -5,3 +5,4 @@ ConstuctModel/.DS_Store
 .vscode
 PostProcess/.vscode
 Construction4SystemModel/SystemModel/__pycache__
+PostProcess/Data/*
