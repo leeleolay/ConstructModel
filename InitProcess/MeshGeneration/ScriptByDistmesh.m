@@ -4,13 +4,13 @@ for flag = 1:5
     if flag == 1
         h0_values = [0.5,0.8,1,2,3];
     elseif flag == 2
-		h0_values = [1,2,3,4,5];
-	elseif flag == 3
-		h0_values = [5,6,7,8.1,9];
+	h0_values = [1,2,3,4,5];
+    elseif flag == 3
+	h0_values = [5,6,7,8.1,9];
     elseif flag == 4
         h0_values = [0.4,0.6,0.8,1,2];
-	elseif flag == 5
-		h0_values = [0.3,0.5,0.7,0.91,1.1]
+    elseif flag == 5
+	h0_values = [0.3,0.5,0.7,0.91,1.1]
     end
 for h0 = h0_values
 
@@ -42,8 +42,8 @@ switch flag
     case 1
         % 六瓣形
         fd = @(p) dunion(dunion(dunion(sum((p).^2./repmat([a^2, b^2, c^2], size(p, 1), 1), 2) - 1, sum((p*A).^2./repmat([a^2, b^2, c^2], size(p, 1), 1), 2) - 1),...
-									sum((p*B).^2./repmat([a^2, b^2, c^2], size(p, 1), 1), 2) - 1),sum((p).^2./repmat([d^2, d^2, c^2], size(p, 1), 1), 2) - 1);
-		case 2
+			sum((p*B).^2./repmat([a^2, b^2, c^2], size(p, 1), 1), 2) - 1),sum((p).^2./repmat([d^2, d^2, c^2], size(p, 1), 1), 2) - 1);
+    case 2
         % 球形
         fd = @(p) dsphere(p,0,0,0,rs);
     case 3
