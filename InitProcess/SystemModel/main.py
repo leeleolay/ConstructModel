@@ -182,6 +182,7 @@ def create_bonds_between_cell_and_wall(params:Dict, system:System):
 
     bonds_to_add:List[Bond] = []
 
+    bondidx = 1
     for cell_atom in cell_atoms:
         min_distance = float('inf')
         closest_wall_atom = None
@@ -196,12 +197,13 @@ def create_bonds_between_cell_and_wall(params:Dict, system:System):
                 closest_wall_atom = wall_atom
 
         bond = Bond()
-        bond.idx = len(system.bonds) + 1
+        bond.idx =  bondidx
         bond.type = 1
         bond.atom1 = cell_atom.idx
         bond.atom2 = closest_wall_atom.idx
         bond.length = min_distance
         bonds_to_add.append(bond)
+        bondidx += 1
     
     system.update_bonds(bonds_to_add)
 
