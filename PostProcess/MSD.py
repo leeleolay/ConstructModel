@@ -115,7 +115,7 @@ def calculate_diffusion_coefficient(msd_values, time_range=None):
 
     return diffusion_coefficient
 
-def plot_msd(msd_values, ensemble_msd_values, results_dir):
+def plot_msd(msd_values, ensemble_msd_values, results_dir ,name):
     # Plot the original MSD values
     plt.figure(figsize=(8, 6))
     time_deltas = []
@@ -130,7 +130,7 @@ def plot_msd(msd_values, ensemble_msd_values, results_dir):
     plt.ylabel('MSD')
     plt.title('Original MSD')
     plt.legend()
-    plt.savefig(os.path.join(results_dir, 'msd_plot.png'))
+    plt.savefig(os.path.join(results_dir, str('msd_plot_'+ name + '.png')))
     plt.show()
 
     # Plot the ensemble-averaged MSD values
@@ -144,13 +144,13 @@ def plot_msd(msd_values, ensemble_msd_values, results_dir):
     plt.ylabel('MSD')
     plt.title('Ensemble Averaged MSD')
     plt.legend()
-    plt.savefig(os.path.join(results_dir, 'ensemble_averaged_msd_plot.png'))
+    plt.savefig(os.path.join(results_dir, str('ensemble_averaged_msd_plot_' + name + '.png')))
     plt.show()
 
-def plot_diffusion_coefficient(diffusion_coefficient, results_dir):
+def plot_diffusion_coefficient(diffusion_coefficient, results_dir, name):
     plt.bar(["D"], [diffusion_coefficient])
     plt.ylabel('Diffusion Coefficient')
-    plt.savefig(os.path.join(results_dir, 'diffusion_coefficient_plot.png'))
+    plt.savefig(os.path.join(results_dir, str('diffusion_coefficient_plot_' + name + '.png')))
     plt.show()
 
 def get_unique_filename(filename, ext, directory='.'):
@@ -170,12 +170,13 @@ if __name__ == '__main__':
     parser.add_argument("target_atom_type", type=int, help="Target atom type for MSD calculation")
     parser.add_argument("min_timestep", type=int, help="Minimum timestep to consider")
     parser.add_argument("max_timestep", type=int, help="Maximum timestep to consider")
+    parser.add_argument("output", type=str, help="Output file location")
     parser.add_argument("--num_processes", type=int, default=1, help="Number of processes to use (optional)")
 
     args = parser.parse_args()
+    traj_name = os.path.basename(args.traj_file)
 
-    date_string = datetime.now().strftime('%Y-%m-%d')
-    results_dir = f'results_{date_string}'
+    results_dir = f'{args.output}results_msd'
     os.makedirs(results_dir, exist_ok=True)
 
     atom_positions = read_lammps_traj(args.traj_file, args.target_atom_type, args.min_timestep, args.max_timestep)
@@ -189,12 +190,12 @@ if __name__ == '__main__':
 
     print(f'Diffusion Coefficient: {diffusion_coefficient}')
 
-    plot_diffusion_coefficient(diffusion_coefficient, results_dir)
-    plot_msd(msd_values, ensemble_msd_values, results_dir)
+    plot_diffusion_coefficient(diffusion_coefficient, results_dir, traj_name)
+    plot_msd(msd_values, ensemble_msd_values, results_dir, traj_name)
     
     # Save the data to a txt file
     msd_data_filename = get_unique_filename('msd_data', '.txt', results_dir)
-    with open(os.path.join(results_dir, msd_data_filename), 'w') as f:
+    with open(os.path.join(results_dir, str(msd_data_filename+'_'+traj_name)), 'w') as f:
         f.write("MSD Values:\n")
         for time_delta, msd_value in msd_values:
             f.write(f"{time_delta} {msd_value}\n")

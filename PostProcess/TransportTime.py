@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 from tqdm import tqdm
+import os
 
 def is_inside(position, region):
     """Check if a position is inside a region."""
@@ -69,9 +70,12 @@ def parse_arguments():
     parser.add_argument('--atom_type', type=int, required=True, help='The type of atom to analyze.')
     parser.add_argument('--min_timestep', type=int, default=0, help='The minimum timestep to consider.')
     parser.add_argument('--max_timestep', type=int, default=1000, help='The maximum timestep to consider.')
-    parser.add_argument('--particle_ids', nargs='+', type=int, required=True, help='The IDs of the particles to analyze.')
+    parser.add_argument('--particle_ids', nargs='+', type=int, required=None, help='The IDs of the particles to analyze.')
     parser.add_argument('--start_region', nargs='+', type=float, required=True, help='The start region for the particles.')
     parser.add_argument('--end_region', nargs='+', type=float, required=True, help='The end region for the particles.')
+    parser.add_argument('--output', type=str, required=True, help="Output file location")
+    parser.add_argument('--start_id', type=int, default=None, help='The starting ID of the particle range.')
+    parser.add_argument('--end_id', type=int, default=None, help='The ending ID of the particle range.')
 
     args = parser.parse_args()
     args.start_region = np.array(args.start_region).reshape(2, -1)
@@ -79,18 +83,38 @@ def parse_arguments():
 
     return args
 
+def get_unique_filename(filename, ext, directory='.'):
+    base_filename, _ = os.path.splitext(filename)
+    index = 0
+    candidate = f"{base_filename}{ext}"
+
+    while os.path.exists(os.path.join(directory, candidate)):
+        index += 1
+        candidate = f"{base_filename}_{index}{ext}"
+
+    return candidate
+
 def main():
     args = parse_arguments()
+    traj_name = os.path.basename(args.file_name)
 
     # Read atom positions from trajectory file
     atom_positions = read_lammps_traj(args.file_name, args.atom_type, args.min_timestep, args.max_timestep)
 
+    if args.particle_ids is not None:
+        particles = args.particle_ids
+    elif args.start_id is not None and args.end_id is not None:
+        particles = list(range(args.start_id, args.end_id + 1)) 
     # Calculate particle times with hardcoded parameters
-    particle_times = calculate_time(atom_positions, args.particle_ids, args.start_region, args.end_region)
+    particle_times = calculate_time(atom_positions, particles, args.start_region, args.end_region)
 
     # Process the calculated times
     times = []
-    with open("transport_results.txt", "w") as f:
+    results_dir = f'{args.output}results_time'
+    os.makedirs(results_dir, exist_ok=True)
+    time_data_filename = get_unique_filename('transport_results', '.txt', results_dir)
+
+    with open(os.path.join(results_dir, str(time_data_filename+'_'+traj_name)), 'w') as f:
         for particle_id, time in particle_times.items():
             if time is None:
                 print(f"Particle {particle_id} did not move from the start region to the end region.")

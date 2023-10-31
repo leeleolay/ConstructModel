@@ -10,15 +10,16 @@
         "gap_of_cells":1,
         "length_x":20.0,
         "length_y":20.0,
-        "length_z":70.0
+        "length_z":70.0,
+        "direction":"z"
         },
     "particle":{
         "type":"random",
         "particle_zlo":37.0,
         "particle_zhi":57.0,
         "particle_rho":10.0,
-        "target_average_speed": 0.0003125,
-        "target_average_direction": [1.0, 0.0, 0.0],
+        "target_average_speed": 0.01082072,
+        "target_average_direction": [0.0, 0.0, 1.0],
         "seed": 42
         },
     "wall":{
